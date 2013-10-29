@@ -67,13 +67,17 @@
         var map = new google.maps.Map(document.getElementById("map-canvas"),
             mapOptions);
 
+        var overlay = new google.maps.OverlayView();
+
+        var removeDirection = '_IB',
+            lastTime = 0, 
+            offset = 10;
+
         // on a click, query the server to find best routes near that area
+        // may be good to toggle w/ button click on menu
         google.maps.event.addListener(map, 'click', function(e) {
           // e.latLng --> e.pixel also available
         });        
-
-        var removeDirection = '_IB';
-        var lastTime = 0; 
 
         var getRouteData = function(routes){
           var routeArray = [];
@@ -93,7 +97,6 @@
           }
           return routeArray;
         };
-
 
         var getData = function(bounds, cb){
 
@@ -131,11 +134,118 @@
           });
         };  
 
-        var overlay = new google.maps.OverlayView();
+        var routify = function(routeArray, routeLayer, projection){
+          /*******************
+           BUS ROUTES ON MAP
+          *******************/    
+
+          // routes are currently limited by the maximum size of their container
+          // TODO: convert routes into Maps directions
+
+          // var routeContainer = routeLayer.selectAll('.routeContainer')
+          //   .data(routeArray, function(d){ return d.routename; })
+          //   .each(convert2)  
+
+          // var routeSvgs = routeContainer.enter().append('svg')
+          //   .each(convert2)  // required because this inherits ORIGINAL data
+          //   .attr('class','routeContainer')
+
+          // routeContainer.exit().remove();
+
+          // var lineFunction = d3.svg.line()
+          //   .x(function(d){ return Number(d.lat); })
+          //   .y(function(d){ return Number(d.lon); })
+          //   .interpolate('linear');
+
+          // var lineGraph = routeSvgs.append('path')
+          //   .datum(function(d){return d.stops})  
+          //   .attr('d',function(d){ return lineFunction(d)})
+          //   .attr('class','path')
+          //   .style("stroke-width", 3)
+          //   .style("stroke", "steelblue")
+          //   .style("fill", "none");
+
+          // is a different function warranted?
+          // function convert2(d){
+          //   var coord;
+          //   for(var i = 0; i<d.stops.length; i++){
+          //     coord = new google.maps.LatLng(d.stops[i].lat, d.stops[i].lon);
+          //     coord = projection.fromLatLngToDivPixel(coord);
+          //     d.stops[i].lat = coord.x;
+          //     d.stops[i].lon = coord.y;
+          //   }
+          //   return d3.select(this);
+          // };
+        };
+
+        var pairSVG = function(layer, class, data, key){
+
+        };
+
+        var createSVG = function(){
+
+        };
+
+        var bussify = function(busArray, busLayer, projection){
+          /*******************
+           BUS MARKERS ON MAP
+          *******************/
+
+          //create SVG containers
+          var busContainer = busLayer.selectAll('.busContainer') // select all svg elements
+            .data(busArray, function(d){ return d.id; })
+            .each(convert)
+            
+          var svgs = busContainer.enter().append('svg')
+            .each(convert)
+            .attr('class','busContainer')
+
+          busContainer.exit().remove();                
+
+          var circle = svgs.append('circle')
+            .attr('r', 8)
+            .attr('cx',offset)
+            .attr('cy',offset)            
+            .attr('class','bus')
+            .style('fill',function(){return '#'+(~~(Math.random()*(1<<24))).toString(16);}) //colors   
+
+          var text = svgs.append('text')
+            .attr('x',offset/2)
+            .attr('y',offset)
+            .attr('dy', '.31em')
+            .attr('fill','black')
+            .text(function(d){return d.routeTag});
+
+            // not included
+            // .filter(function(d){ if(d.dirTag){ return d.dirTag.indexOf('_IB') > -1} else { return false } })
+            // .remove()
+          
+          function convert(d){
+            d = new google.maps.LatLng(d.lat, d.lon);
+            d = projection.fromLatLngToDivPixel(d);
+            // this is the DOM element, we slowly change the style
+            return d3.select(this)
+                .transition().duration(9500)  //.delay(function(d,i){return Math.min(i*50,5000)})
+                .style('left', (d.x - offset) + 'px')
+                .style('top', (d.y - offset) +  'px');
+
+          };
+        };
+
+        var render = function(busLayer,routeLayer){
+          var projection = overlay.getProjection();
+          return function(){
+            getData(map.getBounds(), function(busArray, routeArray){  
+              routify(routeArray, routeLayer, projection);
+              bussify(busArray, busLayer, projection);
+            });
+          };
+        };
+
 
         // called ONCE after overlay.setMap()
         overlay.onAdd = function(){
-          var layer = d3.select(this.getPanes().overlayMouseTarget)
+          var busLayer = d3.select(this.getPanes().overlayMouseTarget)
             .append('div')
             .attr('class', 'toplayer');
 
@@ -143,111 +253,14 @@
             .append('div')
             .attr('class', 'toplayerRoutes');
 
-          /*
-          This method is called after onAdd() and when the position from 
-          projection.fromLatLngToPixel() would return a new value for a given LatLng.
+          var rerender = render(busLayer,routeLayer);
 
-          MAY BE VALUABLE TO NEST MOST WORK IN A FUNCTION SO THAT OVERLAY.DRAW AND THE 
-          DATAUPDATE RENDER AT DIFFERENT SPEEDS. (E.G. A ZOOM TAKES 8sec TO RENDER) 
-          */
+          setInterval(rerender,10000);
 
+          // called when the position from projection.fromLatLngToPixel() would return a new value for a given LatLng.
           overlay.draw = function(){
-
-            var projection = this.getProjection();
-            var offset = 10; // offset from SVG edge
-
-            getData(map.getBounds(), function(busArray, routeArray){  
-
-              /*******************
-               BUS ROUTES ON MAP
-              *******************/
-
-              // routes are currently limited by the maximum size of their container
-              // TODO: convert routes into Maps directions
-
-              // var routeContainer = routeLayer.selectAll('.routeContainer')
-              //   .data(routeArray, function(d){ return d.routename; })
-              //   .each(convert2)  
-
-              // var routeSvgs = routeContainer.enter().append('svg')
-              //   .each(convert2)  // required because this inherits ORIGINAL data
-              //   .attr('class','routeContainer')
-
-              // routeContainer.exit().remove();
-
-              // var lineFunction = d3.svg.line()
-              //   .x(function(d){ return Number(d.lat); })
-              //   .y(function(d){ return Number(d.lon); })
-              //   .interpolate('linear');
-
-              // var lineGraph = routeSvgs.append('path')
-              //   .datum(function(d){return d.stops})  
-              //   .attr('d',function(d){ return lineFunction(d)})
-              //   .attr('class','path')
-              //   .style("stroke-width", 3)
-              //   .style("stroke", "steelblue")
-              //   .style("fill", "none");
-
-              /*******************
-               BUS MARKERS ON MAP
-              *******************/
-
-              //create SVG containers
-              var busContainer = layer.selectAll('.busContainer') // select all svg elements
-                .data(busArray, function(d){ return d.id; })
-                .each(convert)
-                
-              var svgs = busContainer.enter().append('svg')
-                .each(convert)
-                .attr('class','busContainer')
-
-              busContainer.exit().remove();                
-
-              var circle = svgs.append('circle')
-                .attr('r', 8)
-                .attr('cx',offset)
-                .attr('cy',offset)            
-                .attr('class','bus')
-                .style('fill',function(){return '#'+(~~(Math.random()*(1<<24))).toString(16);}) //colors   
-
-              var text = svgs.append('text')
-                .attr('x',offset/2)
-                .attr('y',offset)
-                .attr('dy', '.31em')
-                .attr('fill','black')
-                .text(function(d){return d.routeTag});
-
-                // not included
-                // .filter(function(d){ if(d.dirTag){ return d.dirTag.indexOf('_IB') > -1} else { return false } })
-                // .remove()
-              
-              function convert(d){
-                d = new google.maps.LatLng(d.lat, d.lon);
-                d = projection.fromLatLngToDivPixel(d);
-                // this is the DOM element, we slowly change the style
-                return d3.select(this)
-                    .transition().duration(9500)  //.delay(function(d,i){return Math.min(i*50,5000)})
-                    .style('left', (d.x - offset) + 'px')
-                    .style('top', (d.y - offset) +  'px');
-
-              };
-
-              // is a different function warranted?
-              function convert2(d){
-                var coord;
-                for(var i = 0; i<d.stops.length; i++){
-                  coord = new google.maps.LatLng(d.stops[i].lat, d.stops[i].lon);
-                  coord = projection.fromLatLngToDivPixel(coord);
-                  d.stops[i].lat = coord.x;
-                  d.stops[i].lon = coord.y;
-                }
-                return d3.select(this);
-              };
-
-            });                
+            rerender();
           }
-          // setTimeout(function(){overlay.draw();},3000);
-          setInterval(function(){overlay.draw();},10000);
         }
         
         overlay.setMap(map);
