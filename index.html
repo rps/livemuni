@@ -69,6 +69,12 @@
 
         var overlay = new google.maps.OverlayView();
 
+
+
+        // directionsDisplay.setMap(map);
+        // directionsDisplay.preserveViewport = true;
+
+
         if(navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(function(position){
             console.log(position);
@@ -96,8 +102,8 @@
             lineObj = {routename: key, stops: []};
             if(stringRoutes[key]){
               for(var i = 0; i<stringRoutes[key].length; i++){
-                if(stringRoutes[key][i].lat && stringRoutes[key][i].lon && (key === '21' || key === 'KT')){ //artificial route limiter
-                  lineObj.stops.push({ lat: stringRoutes[key][i].lat, lon: stringRoutes[key][i].lon });
+                if(stringRoutes[key][i].lat && stringRoutes[key][i].lon && (key === '21' || key === '31')){ //artificial route limiter
+                  lineObj.stops.push({ lat: stringRoutes[key][i].lat.slice(0,stringRoutes[key][i].lat.indexOf('.')+4), lon: stringRoutes[key][i].lon.slice(0,stringRoutes[key][i].lon.indexOf('.')+4) });
                 }
               }
             }
@@ -144,53 +150,63 @@
         };  
 
         var routify = function(routeArray, routeLayer, projection){
-          /*******************
-           BUS ROUTES ON MAP
-          *******************/    
+          /******************************************************************************************************************
+                                                                 BUS ROUTES ON MAP
+          ******************************************************************************************************************/    
 
           // routes are currently limited by the maximum size of their container
           // TODO: convert routes into Maps directions
 
-          // var routeContainer = routeLayer.selectAll('.routeContainer')
-          //   .data(routeArray, function(d){ return d.routename; })
-          //   .each(convert2)  
+          routeArray.forEach(convert2);
 
-          // var routeSvgs = routeContainer.enter().append('svg')
-          //   .each(convert2)  // required because this inherits ORIGINAL data
-          //   .attr('class','routeContainer')
 
-          // routeContainer.exit().remove();
 
-          // var lineFunction = d3.svg.line()
-          //   .x(function(d){ return Number(d.lat); })
-          //   .y(function(d){ return Number(d.lon); })
-          //   .interpolate('linear');
+          function convert2(route){
+            var coord;
+            var waypoints = [];
+            var request;
+            for(var i = 0; i<route.stops.length; i++){
+              coord = new google.maps.LatLng(route.stops[i].lat, route.stops[i].lon);
+              // coord = projection.fromLatLngToDivPixel(coord);
+              waypoints.push({location: coord, stopover: true});
+              if(waypoints.length === 6){
+                var color = function(){return '#'+(~~(Math.random()*(1<<24))).toString(16);} // TODO: these are re-rendered constantly. Fix.
+                var polylineOptions = new google.maps.Polyline({
+                strokeColor: color(),
+                strokeWeight: 5
+                });
 
-          // var lineGraph = routeSvgs.append('path')
-          //   .datum(function(d){return d.stops})  
-          //   .attr('d',function(d){ return lineFunction(d)})
-          //   .attr('class','path')
-          //   .style("stroke-width", 3)
-          //   .style("stroke", "steelblue")
-          //   .style("fill", "none");
+                var directions = new google.maps.DirectionsService();
 
-          // is a different function warranted?
-          // function convert2(d){
-          //   var coord;
-          //   for(var i = 0; i<d.stops.length; i++){
-          //     coord = new google.maps.LatLng(d.stops[i].lat, d.stops[i].lon);
-          //     coord = projection.fromLatLngToDivPixel(coord);
-          //     d.stops[i].lat = coord.x;
-          //     d.stops[i].lon = coord.y;
-          //   }
-          //   return d3.select(this);
-          // };
+                var directionsDisplay = new google.maps.DirectionsRenderer({
+                  map: map,
+                  preserveViewport: true,
+                  suppressMarkers: true,
+                  polylineOptions: polylineOptions
+                });                
+                request = {
+                  origin: waypoints[0].location, // will need to adjust based on inbound/outbound
+                  destination: waypoints[waypoints.length-1].location,
+                  waypoints: waypoints.slice[1,5], // max is 8 including endpoints. will need to fragment routes                  
+                  travelMode: google.maps.TravelMode.DRIVING
+                };
+                directions.route(request, function(response, status){
+                  if (status == google.maps.DirectionsStatus.OK) {
+                    console.log(response)
+                    directionsDisplay.setDirections(response);
+                    waypoints = [];
+                  }
+
+                });
+              }
+            }
+          };
         };
 
         var bussify = function(busArray, busLayer, projection){
-          /*******************
-           BUS MARKERS ON MAP
-          *******************/
+          /*************************************************************************************************************************************
+                                                                BUS MARKERS ON MAP
+          *************************************************************************************************************************************/
 
           //create SVG containers
           var busContainer = busLayer.selectAll('.busContainer') // select all svg elements
