@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB6R7BKvhzRFK8YNp7y_MVYfrS7JUEWYSQ&sensor=false">
+    </script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src='sax.js'></script>
+    <script src='xmldoc.js'></script>  
+    <script src='stringifiedMuniRoutes.js'></script>
+    <style type="text/css">
+
+      html, body, #map-canvas {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+       
+      .toplayer, .toplayerRoutes, .toplayer svg, .toplayerRoutes svg {
+        position: absolute;
+      }
+       
+      .toplayer svg {
+        width: 20px; /* increase if add'l info req'd to display */
+        height: 20px;
+        font: 9px sans-serif;
+        font-weight: bold;
+      }
+
+      .toplayerRoutes svg {
+        width: 2000px;
+        height: 2000px;
+        padding-right: 100px;
+        font: 9px sans-serif;
+        font-weight: bold;        
+      }
+
+      .path {
+        fill: none;
+        stroke: black
+        stroke-width: 3;
+      }
+       
+      .bus {
+        stroke: black;
+        stroke-width: 1.5px;
+        fill-opacity: 0.7;
+      }
+
+     </style>
+  </head>
+  <body>
+    <div id="map-canvas" />
+    <script type = 'text/javascript'>
+      window.addEventListener("DOMContentLoaded", function() {
+        var mapOptions = {
+          center: new google.maps.LatLng(37.783, -122.409),
+          zoom: 15,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var map = new google.maps.Map(document.getElementById("map-canvas"),
+            mapOptions);
+
+        var removeDirection = '_IB';
+
+        // DEBUG: does not 
+        var getRouteData = function(routes){
+          var routeArray = [];
+          var lineObj = {};
+          // stringRoutes comes from stringifiedMuniRoutes.js
+          for (var key in routes){
+            lineObj = {routename: key, stops: []};
+            if(stringRoutes[key]){
+              for(var i = 0; i<stringRoutes[key].length; i++){
+                if(stringRoutes[key][i].lat && stringRoutes[key][i].lon && (key === '21' || key === 'KT')){ //artificial route limiter
+                  lineObj.stops.push({ lat: stringRoutes[key][i].lat, lon: stringRoutes[key][i].lon });
+                }
+              }
+            }
+            routeArray.push(lineObj);
+            lineObj = {};
+          }
+          return routeArray;
+        };
+
+
+        var getData = function(bounds, cb){
+          
+          // TODO save the timestamp on each call
+          d3.xhr('http://webservices.nextbus.com/service/publicXMLFeed?command=vehicleLocations&a=sf-muni&t=0', // last 15min
+             function(err,res){ 
+            
+            if(err) {
+              console.log('Error: ',err);
+            }
+            var busArray = [],
+                routesOnMap = {};
+            var doc = new XmlDocument(res.response);
+
+            /* lat inc away from eq
+               lon inc (neg) away from prime merid
+               66% reduction in buses when filtering out LatLon */
+
+            for(var i = 0; i<doc.children.length; i++){
+              if(
+                (bounds.ea.d <= Number(doc.children[i].attr.lat) && Number(doc.children[i].attr.lat) <= bounds.ea.b) && // Remove bus markers placed
+                (bounds.fa.b <= Number(doc.children[i].attr.lon) && Number(doc.children[i].attr.lon) <= bounds.fa.d) && // outside the screen.
+                (doc.children[i].attr.secsSinceReport && doc.children[i].attr.secsSinceReport < 90) &&                  // Remove 90sec old markers.
+                (doc.children[i].attr.dirTag && doc.children[i].attr.dirTag.indexOf(removeDirection) === -1)            // Remove wrong direction bus.
+              ){
+                busArray.push(doc.children[i].attr);
+                routesOnMap[doc.children[i].attr.routeTag] = true;
+              }
+            }
+            var routeArray = getRouteData(routesOnMap);
+            return cb(busArray, routeArray);
+          });
+        };  
+
+        var overlay = new google.maps.OverlayView();
+
+        // called ONCE after overlay.setMap()
+        overlay.onAdd = function(){
+          var layer = d3.select(this.getPanes().overlayMouseTarget)
+            .append('div')
+            .attr('class', 'toplayer');
+
+          var routeLayer = d3.select(this.getPanes().overlayMouseTarget)
+            .append('div')
+            .attr('class', 'toplayerRoutes');
+
+          /*
+          This method is called after onAdd() and when the position from 
+          projection.fromLatLngToPixel() would return a new value for a given LatLng.
+
+          MAY BE VALUABLE TO NEST MOST WORK IN A FUNCTION SO THAT OVERLAY.DRAW AND THE 
+          DATAUPDATE RENDER AT DIFFERENT SPEEDS. (E.G. A ZOOM TAKES 8sec TO RENDER) 
+          */
+
+          overlay.draw = function(){
+
+            var projection = this.getProjection();
+            var offset = 10; // offset from SVG edge
+
+            getData(map.getBounds(), function(busArray, routeArray){  
+
+              /*******************
+               BUS ROUTES ON MAP
+              *******************/
+
+              // routes are currently limited by the maximum size of their container
+              // TODO: convert routes into Maps directions
+
+              // var routeContainer = routeLayer.selectAll('.routeContainer')
+              //   .data(routeArray, function(d){ return d.routename; })
+              //   .each(convert2)  
+
+              // var routeSvgs = routeContainer.enter().append('svg')
+              //   .each(convert2)  // required because this inherits ORIGINAL data
+              //   .attr('class','routeContainer')
+
+              // routeContainer.exit().remove();
+
+              // var lineFunction = d3.svg.line()
+              //   .x(function(d){ return Number(d.lat); })
+              //   .y(function(d){ return Number(d.lon); })
+              //   .interpolate('linear');
+
+              // var lineGraph = routeSvgs.append('path')
+              //   .datum(function(d){return d.stops})  
+              //   .attr('d',function(d){ return lineFunction(d)})
+              //   .attr('class','path')
+              //   .style("stroke-width", 3)
+              //   .style("stroke", "steelblue")
+              //   .style("fill", "none");
+
+              /*******************
+               BUS MARKERS ON MAP
+              *******************/
+
+              //create SVG containers
+              var busContainer = layer.selectAll('.busContainer') // select all svg elements
+                .data(busArray, function(d){ return d.id; })
+                .each(convert)
+                
+              var svgs = busContainer.enter().append('svg')
+                .each(convert)
+                .attr('class','busContainer')
+
+              busContainer.exit().remove();                
+
+              var circle = svgs.append('circle')
+                .attr('r', 8)
+                .attr('cx',offset)
+                .attr('cy',offset)            
+                .attr('class','bus')
+                .style('fill',function(){return '#'+(~~(Math.random()*(1<<24))).toString(16);}) //colors   
+
+              var text = svgs.append('text')
+                .attr('x',offset/2)
+                .attr('y',offset)
+                .attr('dy', '.31em')
+                .attr('fill','black')
+                .text(function(d){return d.routeTag});
+
+                // not included
+                // .filter(function(d){ if(d.dirTag){ return d.dirTag.indexOf('_IB') > -1} else { return false } })
+                // .remove()
+              
+              function convert(d){
+                d = new google.maps.LatLng(d.lat, d.lon);
+                d = projection.fromLatLngToDivPixel(d);
+                // this is the DOM element, we slowly change the style
+                return d3.select(this)
+                    .transition().duration(9500)  //.delay(function(d,i){return Math.min(i*50,5000)})
+                    .style('left', (d.x - offset) + 'px')
+                    .style('top', (d.y - offset) +  'px');
+
+              };
+
+              // is a different function warranted?
+              function convert2(d){
+                var coord;
+                for(var i = 0; i<d.stops.length; i++){
+                  coord = new google.maps.LatLng(d.stops[i].lat, d.stops[i].lon);
+                  coord = projection.fromLatLngToDivPixel(coord);
+                  d.stops[i].lat = coord.x;
+                  d.stops[i].lon = coord.y;
+                }
+                return d3.select(this);
+              };
+
+            });                
+          }
+          // setTimeout(function(){overlay.draw();},3000);
+          setInterval(function(){overlay.draw();},10000);
+        }
+        
+        overlay.setMap(map);
+               
+      }, false);
+    </script>
+  </body>
+</html>
