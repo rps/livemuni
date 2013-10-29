@@ -23,8 +23,8 @@
       }
        
       .toplayer svg {
-        width: 20px; /* increase if add'l info req'd to display */
-        height: 20px;
+        width: 40px;
+        height: 40px;
         font: 9px sans-serif;
         font-weight: bold;
       }
@@ -71,7 +71,7 @@
 
         var removeDirection = '_IB',
             lastTime = 0, 
-            offset = 10;
+            offset = 12;
 
         // on a click, query the server to find best routes near that area
         // may be good to toggle w/ button click on menu
@@ -178,14 +178,6 @@
           // };
         };
 
-        var pairSVG = function(layer, class, data, key){
-
-        };
-
-        var createSVG = function(){
-
-        };
-
         var bussify = function(busArray, busLayer, projection){
           /*******************
            BUS MARKERS ON MAP
@@ -225,7 +217,7 @@
             d = projection.fromLatLngToDivPixel(d);
             // this is the DOM element, we slowly change the style
             return d3.select(this)
-                .transition().duration(9500)  //.delay(function(d,i){return Math.min(i*50,5000)})
+                .transition().duration(10000)  //.delay(function(d,i){return Math.min(i*50,5000)})
                 .style('left', (d.x - offset) + 'px')
                 .style('top', (d.y - offset) +  'px');
 
