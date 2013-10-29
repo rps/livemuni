@@ -42,6 +42,10 @@
         stroke: black
         stroke-width: 3;
       }
+
+      .hidden {
+        display:none;
+      }
        
       .bus {
         stroke: black;
@@ -63,9 +67,14 @@
         var map = new google.maps.Map(document.getElementById("map-canvas"),
             mapOptions);
 
-        var removeDirection = '_IB';
+        // on a click, query the server to find best routes near that area
+        google.maps.event.addListener(map, 'click', function(e) {
+          // e.latLng --> e.pixel also available
+        });        
 
-        // DEBUG: does not 
+        var removeDirection = '_IB';
+        var lastTime = 0; 
+
         var getRouteData = function(routes){
           var routeArray = [];
           var lineObj = {};
@@ -87,23 +96,26 @@
 
 
         var getData = function(bounds, cb){
-          
-          // TODO save the timestamp on each call
-          d3.xhr('http://webservices.nextbus.com/service/publicXMLFeed?command=vehicleLocations&a=sf-muni&t=0', // last 15min
+
+          d3.xhr('http://webservices.nextbus.com/service/publicXMLFeed?command=vehicleLocations&a=sf-muni&t='+lastTime, // last 15min or only new
              function(err,res){ 
             
             if(err) {
               console.log('Error: ',err);
             }
             var busArray = [],
+                routeArray = [],
                 routesOnMap = {};
+            
             var doc = new XmlDocument(res.response);
 
             /* lat inc away from eq
                lon inc (neg) away from prime merid
                66% reduction in buses when filtering out LatLon */
-
             for(var i = 0; i<doc.children.length; i++){
+              if(doc.children[i].name === 'lastTime'){
+                // lastTime = doc.children[i].attr.time; // opportunity for a curried function. This is not compatible with D3.
+              }
               if(
                 (bounds.ea.d <= Number(doc.children[i].attr.lat) && Number(doc.children[i].attr.lat) <= bounds.ea.b) && // Remove bus markers placed
                 (bounds.fa.b <= Number(doc.children[i].attr.lon) && Number(doc.children[i].attr.lon) <= bounds.fa.d) && // outside the screen.
@@ -114,7 +126,7 @@
                 routesOnMap[doc.children[i].attr.routeTag] = true;
               }
             }
-            var routeArray = getRouteData(routesOnMap);
+            routeArray = getRouteData(routesOnMap);
             return cb(busArray, routeArray);
           });
         };  
