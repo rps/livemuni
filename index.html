@@ -98,12 +98,13 @@
           var routeArray = [];
           var lineObj = {};
           // stringRoutes comes from stringifiedMuniRoutes.js
-          for (var key in routes){
+          for (var key in routes){          
             lineObj = {routename: key, stops: []};
             if(stringRoutes[key]){
               for(var i = 0; i<stringRoutes[key].length; i++){
-                if(stringRoutes[key][i].lat && stringRoutes[key][i].lon && (key === '21' || key === '31')){ //artificial route limiter
-                  lineObj.stops.push({ lat: stringRoutes[key][i].lat.slice(0,stringRoutes[key][i].lat.indexOf('.')+4), lon: stringRoutes[key][i].lon.slice(0,stringRoutes[key][i].lon.indexOf('.')+4) });
+                if(stringRoutes[key][i].lat && stringRoutes[key][i].lon) {
+                  lineObj.stops.push({ lat: stringRoutes[key][i].lat, lon: stringRoutes[key][i].lon });
+                  // very precise data is important to ensure correct google routes
                 }
               }
             }
@@ -150,60 +151,53 @@
         };  
 
         var routify = function(routeArray, routeLayer, projection){
+
           /******************************************************************************************************************
                                                                  BUS ROUTES ON MAP
           ******************************************************************************************************************/    
 
-          // routes are currently limited by the maximum size of their container
-          // TODO: convert routes into Maps directions
+          var coord;
+          var waypoints = [];
 
-          routeArray.forEach(convert2);
+          var convert2 = function(route){
 
 
-
-          function convert2(route){
-            var coord;
-            var waypoints = [];
-            var request;
             for(var i = 0; i<route.stops.length; i++){
               coord = new google.maps.LatLng(route.stops[i].lat, route.stops[i].lon);
-              // coord = projection.fromLatLngToDivPixel(coord);
               waypoints.push({location: coord, stopover: true});
-              if(waypoints.length === 6){
+              if(waypoints.length === 8){
                 var color = function(){return '#'+(~~(Math.random()*(1<<24))).toString(16);} // TODO: these are re-rendered constantly. Fix.
-                var polylineOptions = new google.maps.Polyline({
-                strokeColor: color(),
-                strokeWeight: 5
-                });
-
-                var directions = new google.maps.DirectionsService();
-
-                var directionsDisplay = new google.maps.DirectionsRenderer({
-                  map: map,
-                  preserveViewport: true,
-                  suppressMarkers: true,
-                  polylineOptions: polylineOptions
-                });                
-                request = {
+                var request = {
                   origin: waypoints[0].location, // will need to adjust based on inbound/outbound
                   destination: waypoints[waypoints.length-1].location,
-                  waypoints: waypoints.slice[1,5], // max is 8 including endpoints. will need to fragment routes                  
+                  waypoints: waypoints.slice(1,5), // max is 8 including endpoints. will need to fragment routes                  
                   travelMode: google.maps.TravelMode.DRIVING
                 };
+                waypoints = [];
+                var directions = new google.maps.DirectionsService();
                 directions.route(request, function(response, status){
+                  console.log(status)
                   if (status == google.maps.DirectionsStatus.OK) {
-                    console.log(response)
+                    var directionsDisplay = new google.maps.DirectionsRenderer({
+                      map: map,
+                      preserveViewport: true,
+                      suppressMarkers: true,
+                      polylineOptions: {strokeColor: 'black', strokeWeight: 5}
+                    }); 
                     directionsDisplay.setDirections(response);
-                    waypoints = [];
                   }
 
                 });
               }
             }
           };
+
+          routeArray.forEach(convert2);          
+        
         };
 
         var bussify = function(busArray, busLayer, projection){
+
           /*************************************************************************************************************************************
                                                                 BUS MARKERS ON MAP
           *************************************************************************************************************************************/
@@ -254,7 +248,7 @@
           return function(){
             getData(map.getBounds(), function(busArray, routeArray){  
               routify(routeArray, routeLayer, projection);
-              bussify(busArray, busLayer, projection);
+              // bussify(busArray, busLayer, projection);
             });
           };
         };
@@ -272,7 +266,7 @@
 
           var rerender = render(busLayer,routeLayer);
 
-          setInterval(rerender,10000);
+          setInterval(rerender,100000);
 
           // called when the position from projection.fromLatLngToPixel() would return a new value for a given LatLng.
           overlay.draw = function(){
