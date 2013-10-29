@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
     <script type="text/javascript"
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB6R7BKvhzRFK8YNp7y_MVYfrS7JUEWYSQ&sensor=false">
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB6R7BKvhzRFK8YNp7y_MVYfrS7JUEWYSQ&sensor=true">
     </script>
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script src='sax.js'></script>
@@ -60,7 +60,7 @@
     <script type = 'text/javascript'>
       window.addEventListener("DOMContentLoaded", function() {
         var mapOptions = {
-          center: new google.maps.LatLng(37.783, -122.409),
+          center: new google.maps.LatLng(37.783, -122.409), //getCenter for NONwrapped LatLon obj
           zoom: 15,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
@@ -68,6 +68,15 @@
             mapOptions);
 
         var overlay = new google.maps.OverlayView();
+
+        if(navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position){
+            console.log(position);
+            var location = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+            map.setCenter(location);
+          });
+        }
+        
 
         var removeDirection = '_IB',
             lastTime = 0, 
