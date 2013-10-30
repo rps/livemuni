@@ -28,7 +28,7 @@ if ('development' == app.get('env')) {
 }
 
 app.get('/', routes.index);
-app.get('/files*', routes.files); // rewrite
+app.get('/lib*', routes.files); // rewrite
 app.get('/style*', routes.style);
 app.get('/main.js', routes.main);
 

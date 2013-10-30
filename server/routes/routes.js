@@ -16,7 +16,7 @@ exports.index = function(req, res){
 };
 
 exports.files = function(req, res){
-  fs.createReadStream(path.join(__dirname, '../', req.url.slice(req.url.indexOf('files/')+6))).pipe(res);
+  fs.createReadStream(path.join(__dirname, '../../lib/', req.url.slice(req.url.indexOf('lib/')+4))).pipe(res);
 };
 
 exports.style = function(req, res){

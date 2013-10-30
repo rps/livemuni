@@ -24,6 +24,7 @@ google.maps.event.addListener(map, 'click', function(e) {
 });
 
 var getRouteData = function(routes){
+
   var routeArray = [];
   var lineObj = {};
   // stringRoutes comes from stringifiedMuniRoutes.js
