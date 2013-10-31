@@ -12,7 +12,8 @@ var mongoClient = new MongoClient(new Server('localhost', 27017));
 mongoClient.open(function(err, mongoClient) {
   if(err) throw err;
   console.log('opening mongodb connection');
-  getRoutes();
+  // getRoutes();
+  queryRouteData('x','Inbound',['45']);
 });
 
 var getRoutes = function(){
@@ -87,3 +88,28 @@ var insertIntoDB = function(routeObj, dbInfo){
   });
 };
 
+var queryRouteData = function(callback, stringInboundOutbound, stringRoutesArr){
+  var routesdb = mongoClient.db("routesdb");
+  var directionalFilter = 'stopTagOrder'+stringInboundOutbound;
+  var dynamicDirectionalFilter = '$'+directionalFilter;
+  var projectFilter1 = {'stops':1, isMatch: {$cmp: ['$stops.stopTag', dynamicDirectionalFilter]}, _id:0, 'routename':1};
+  projectFilter1[directionalFilter] = 1;
+  var projectFilter2 = {'stops':1, 'routename':1};
+  projectFilter2[directionalFilter] = 1;
+
+  routesdb.collection('routepoints').aggregate([
+    { $match: {routename: {$in: stringRoutesArr}} },
+    { $unwind: '$stops' },
+    { $unwind: dynamicDirectionalFilter},
+    { $project: projectFilter1},
+    { $match: {isMatch: 0}},
+    { $project: projectFilter2}
+  ], function(err, result){
+    callback(result);
+  });
+};
+/*
+SELECT stops
+WHERE routename = 45
+AND stops IN (SELECT stopTagOrderOutbound WHERE routename = 45)
+*/
