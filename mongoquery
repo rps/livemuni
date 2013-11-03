@@ -1,0 +1,89 @@
+
+
+On mongo load or new table:
+db.busroutes.ensureIndex({'stopsOutbound.lonlat': '2d'})
+db.busroutes.ensureIndex({'stopsInbound.lonlat': '2d'})
+db.busstops.ensureIndex({'lonlat':'2d'})
+
+Bus Routes = {
+  routename: 'N',
+  stopsInbound: [ {stopTag: 123, location:[37,-128]} ],
+  stopsOutbound: [ {stopTag: 123, location:[37,-128]} ]
+};
+
+(1 / 3960) * (180 / 3.14)
+1 / (3960*3.14 / 180) = 1/69 = 1*180 / 3960*3.14
+1/ 69.115038379 (or 22*pi)
+
+
+db.busroutes.distinct('routename',{'stopsOutbound.lonlat': { $near: [-122.4140882492065,37.779364652081206], $maxDistance: 0.00434058935 }}) // .3 miles / (22*pi)
+--> don't forget that LONLAT is in an unusual order
+--> returns ROUTES in order of nearest to this point. does NOT return the closest point on the route.
+--> good for: finding closest directional routes nearest a point
+
+Bus Stops = {
+  type: 'Inbound',
+  routename: 'N'
+  stopTag: 4567,
+  location: [37,125]
+};
+
+db.busstops.find( {lonlat: {$near: [-122.4140882492065,37.779364652081206] }, direction: 'Inbound', routename: {$in: ['5','9','21']} } ).limit(5) --> also limit to direction & routes
+--> returns STOPS in order of nearest to this point
+--> good for: finding closest directional stops near person
+--> issue: may return multiple stops on a route
+
+mapobjects schema:
+{
+  routename: string,
+  direction: string,
+  path: [ DirectionsResultsObjects ]
+}
+
+--------
+F L O W:
+
+JS: determine inbound or outbound
+JS: send to server
+--
+Q: generate routes near user
+Q: generate routes near destination
+JS: determine & save overlap between query results (routes)
+Q: generate stops near user (may want to limit)
+JS: determine closest stop per route from query results
+API: get prediction times for stops
+JS: filter for < 10min
+Q: get mapobjects for routes
+JS: send to client
+--
+JS: place stops on map with counter
+JS: place routes on map
+JS: determine highest waittime and run setinterval (below)
+JS: when time = 1, setTimeout to change point to red & delete 30s later
+API: refresh prediction times every 30sec
+
+
+
+--------
+
+{
+    "_id" : ObjectId("5252cbdd9520b8b18ee4b1c3"),
+    "name" : "Seattle - Downtown",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [
+           -122.33145,
+            47.60789
+         ]
+   }
+}
+
+OLD: Bus Routes = {
+  name: 'N'
+  stops: [   {stopTag:123, location:{lon:1, lat:1} }     ],
+  stopOrderInbound: [ 123, 456  ],
+  stopOrderOutbound: [ 987, 631  ]
+};
+
+// copy items from one collection to the other
+db.mapobjects.find().forEach(function(doc){db.mapobjectsInbound.save(doc)});
