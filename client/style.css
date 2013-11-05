@@ -1,19 +1,35 @@
 html, body, #map-canvas {
+  height:100%;
   width: 100%;
-  height: 100%;
+  top:0;
+  bottom: 0;
+  right: 0;
+  left: 0;
   margin: 0;
   padding: 0;
 }
 
-.toplayer, .toplayerRoutes, .toplayer svg, .toplayerRoutes svg {
+.toplayer, .toplayerRoutes, .clicklayer, .userloclayer, .stoplayer, .toplayer svg, .toplayerRoutes svg, .clicklayer svg, .userloclayer svg, .stoplayer svg {
   position: absolute;
 }
 
-.toplayer svg {
+.toplayer svg, .clicklayer svg, .userloclayer svg {
   width: 40px;
   height: 40px;
   font: 9px sans-serif;
   font-weight: bold;
+}
+
+.stoplayer svg {
+  width: 60px;
+  height: 40px;
+  font: 9px sans-serif;
+  font-weight: bold;
+}
+
+.stop {
+  stroke: black;
+  stroke-width: 1.5px;
 }
 
 .toplayerRoutes svg {
