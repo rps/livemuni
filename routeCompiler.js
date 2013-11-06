@@ -201,6 +201,14 @@ exports.saveBrain = function(data, response){
   });
 };
 
+exports.pullRoutes = function(routesWanted, resp){
+  var direction = Object.keys(routesWanted)[0];
+  var dbInfo = connect('routesdb','mapobjects');
+  dbInfo.mapobjects.find({routename: {$in: routesWanted[direction]}, direction: direction},{_id:0}).toArray(function(err, res){
+    resp.end(JSON.stringify(res));
+  });
+};
+
 var createRoutesCollection = function(){
   var globalMind = {
     routeTicker: 0,
@@ -262,89 +270,3 @@ var routeDecompiler = function(aRoute, globalMind){
   }
 
 };
-
-// // old polyline scraper
-// var routesToPolylines = function(){
-//   var dbInfo = {};
-//   dbInfo.routesdb = mongoClient.db('routesdb');
-//   dbInfo.busroutes = dbInfo.routesdb.collection('busroutes');
-//   dbInfo.polylines = dbInfo.routesdb.collection('polylines');
-//   var routelist = [];
-//   dbInfo.busroutes.find({},{routename:1, _id:0}).toArray(function(err, result){
-//     for(var i = 0; i<result.length; i++){
-//       routelist.push(result[i].routename);
-//     }
-//     for(var j = 0; j<1; j++){ //routelist.length
-//       var temp = routelist[j];
-//       // delay the sending of each route by 7 seconds
-//       (function(thing, index){
-//         setTimeout(function(){getPolylines(thing,dbInfo)},index*7000);
-//       })(temp, j);
-//     }
-//   });
-
-// };
-
-// var getPolylines = function(routename, dbInfo){
-//   routename = '5'; // fake
-//   var storage = [];
-//   var counter = 0;
-//   var resArr = [];
-//   var cb = function(data){
-//     for(var i = 0; i<data.length; i++){
-//       storage.push(data[i].stops.lonlat.lat+","+data[i].stops.lonlat.lon);
-//       console.log(storage[storage.length-1])
-//       if(storage.length === 6){
-//         counter++;
-//         (function(index, saveStorage){
-//           console.log('loading in ',index);
-//           setTimeout(function(){console.log('firing'); gm.directions(saveStorage[0],saveStorage[saveStorage.length-1],cb2,false,'driving',saveStorage.slice(1,saveStorage.length-1));},1000*index)
-//         })(i, storage); 
-//         storage = [storage[storage.length-1]];
-//       }
-//     }
-
-//   };
-//   var cb2 = function(err, res){
-//     if(err) throw err;
-//     console.log('a res')
-//     // console.log(res.routes[0])
-//     resArr.push(res.routes[0].overview_polyline.points);
-//     counter--;
-//     if(counter === 0){
-//       console.log(resArr.join('\n'));
-//     }
-//   }
-//   console.log('calling ',routename);
-//   queryRouteData(cb, 'Inbound',[routename]);
-// };
-
-
-// // given a route and direction, returns ordered list of JSON stops
-// // no longer works following destruction of old busroutes collection
-// exports.queryRouteData = queryRouteData = function(callback, stringInboundOutbound, stringRoutesArr){
-//   console.log('running queryRouteData');
-//   var routesdb = mongoClient.db("routesdb");
-//   var directionalFilter = 'stopTagOrder'+stringInboundOutbound;
-//   var dynamicDirectionalFilter = '$'+directionalFilter;
-//   var projectFilter1 = {'stops':1, 'routename':1, _id:0, isMatch: {$cmp: ['$stops.stopTag', dynamicDirectionalFilter]}};
-//   projectFilter1[directionalFilter] = 1;
-//   var projectFilter2 = {'stops':1, 'routename':1};
-//   projectFilter2[directionalFilter] = 1;
-
-//   routesdb.collection('busroutes').aggregate([
-//     { $match: {routename: {$in: stringRoutesArr}} },
-//     { $unwind: '$stops' },
-//     { $unwind: dynamicDirectionalFilter},
-//     { $project: projectFilter1},
-//     { $match: {isMatch: 0}},
-//     { $project: projectFilter2}
-//   ], function(err, result){
-//     callback(result);
-//   });
-// };
-// /*
-// SELECT stops
-// WHERE routename = 45
-// AND stops IN (SELECT stopTagOrderOutbound WHERE routename = 45)
-// */

@@ -15,7 +15,7 @@ html, body, #map-canvas {
 
 .toplayer svg, .clicklayer svg, .userloclayer svg {
   width: 40px;
-  height: 40px;
+  height: 20px;
   font: 9px sans-serif;
   font-weight: bold;
 }
@@ -25,6 +25,7 @@ html, body, #map-canvas {
   height: 40px;
   font: 9px sans-serif;
   font-weight: bold;
+  font-color: black;
 }
 
 .stop {
@@ -50,8 +51,12 @@ html, body, #map-canvas {
   display:none;
 }
 
+.toplayer circle {
+  fill: white;
+}
+
 .bus {
   stroke: black;
-  stroke-width: 1.5px;
-  fill-opacity: 0.7;
+  stroke-width: 0px;
+  fill-opacity: 0;
 }

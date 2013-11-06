@@ -32,12 +32,18 @@ if ('development' == app.get('env')) {
 
 app.get('/', routes.index);
 app.get('/lib*', routes.files); // rewrite
-app.get('/style*', routes.style);
+app.get('/style.css', routes.main);
 app.get('/client.js', routes.main);
-app.get('/busroutes', routes.busroutes);
+app.get('/App.js', routes.main);
+app.get('/Map.js', routes.main);
 app.get('/genpath', routes.pathgen);
 app.get('/generatePath.js', generatePathData);
 app.get('/triggerPathGen', triggerPathGen);
+
+app.post('/routify', function(req, res){
+  console.log(req.body);
+  routes.pullBusRoutes(req.body, res);
+});
 
 app.post('/coordinates', function(req, res){
   console.log('coordinates post req');
@@ -71,7 +77,6 @@ function cbcontinue(routeData, originalres){
   };
   routeCompiler.queryRouteData(callback, direction, routes);
 }
-
 
 function generatePathData(req, res){
   res.set('Content-Type', 'application/javascript');

@@ -142,6 +142,7 @@ exports.saveBrain = function(data, response){
   });
 };
 
+// // old polyline scraper
 // var routesToPolylines = function(){
 //   var dbInfo = {};
 //   dbInfo.routesdb = mongoClient.db('routesdb');
@@ -198,3 +199,31 @@ exports.saveBrain = function(data, response){
 // };
 
 
+// // given a route and direction, returns ordered list of JSON stops
+// // no longer works following destruction of old busroutes collection
+// exports.queryRouteData = queryRouteData = function(callback, stringInboundOutbound, stringRoutesArr){
+//   console.log('running queryRouteData');
+//   var routesdb = mongoClient.db("routesdb");
+//   var directionalFilter = 'stopTagOrder'+stringInboundOutbound;
+//   var dynamicDirectionalFilter = '$'+directionalFilter;
+//   var projectFilter1 = {'stops':1, 'routename':1, _id:0, isMatch: {$cmp: ['$stops.stopTag', dynamicDirectionalFilter]}};
+//   projectFilter1[directionalFilter] = 1;
+//   var projectFilter2 = {'stops':1, 'routename':1};
+//   projectFilter2[directionalFilter] = 1;
+
+//   routesdb.collection('busroutes').aggregate([
+//     { $match: {routename: {$in: stringRoutesArr}} },
+//     { $unwind: '$stops' },
+//     { $unwind: dynamicDirectionalFilter},
+//     { $project: projectFilter1},
+//     { $match: {isMatch: 0}},
+//     { $project: projectFilter2}
+//   ], function(err, result){
+//     callback(result);
+//   });
+// };
+// /*
+// SELECT stops
+// WHERE routename = 45
+// AND stops IN (SELECT stopTagOrderOutbound WHERE routename = 45)
+// */
