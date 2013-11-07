@@ -37,6 +37,7 @@ lm.util.extend = function() {
   this.lastTime = 0;
   this.lastBusArray = [];
   this.lastRouteArray = [];
+  // this.lastStopObj = {}; TODO: undo
 
   // Initialize map
   this.map = new lm.Map(lm.util.extend(config.map, {
@@ -123,7 +124,8 @@ lm.App.prototype.getStopPredictions = function(stopObj){
 
       if(storage.counter === 0){
         delete storage.counter;
-        self.updateOrAddSVG(storage, '.stoplayer', 'stopsvg', 'stop', 'yellow');
+        self.lastStopObj = storage;
+        self.updateOrAddSVG(storage, '.stoplayer', 'stopsvg', 'stop', 'yellow'); // TODO: undo, remove storage
         setTimeout(function(){self.getStopPredictions(stopObj);}, 30000);
         map.routesNotRendered && map.getRoutesFromServer(Object.keys(storage));
       }
@@ -137,6 +139,7 @@ lm.App.prototype.updateOrAddSVG = function(dirObj, selectClassWithDot, clickClas
       svg,
       circ,
       timeleft,
+      // dirObj = this.lastStopObj; TODO: undo
       projection = this.map.projection,
       svgBind = d3.select(selectClassWithDot).selectAll('svg'),
       multiple = !(dirObj instanceof google.maps.LatLng);
@@ -156,6 +159,10 @@ lm.App.prototype.updateOrAddSVG = function(dirObj, selectClassWithDot, clickClas
     .style('top',function(d){ return d.y-10; }) // why doesn't map clickevent pixel loc work?
     .style('left',function(d){ return d.x-10; })
     .attr('class',clickClass);
+
+  // d3.selectAll('.'+clickClass) // TODO: undo
+  //   .style('top',function(d){ return d.y-10; }) // why doesn't map clickevent pixel loc work?
+  //   .style('left',function(d){ return d.x-10; });
 
   if(multiple){
     svg.append('rect')
@@ -268,9 +275,10 @@ lm.App.prototype.bussify = function(enableTransitions){
   // called when the position from projection.fromLatLngToPixel() would return a new value for a given LatLng.
   overlay.draw = function(){
     lm.app.bussify(0);
+    // lm.app.updateOrAddSVG('.stoplayer', 'stopsvg', 'stop', 'yellow');
   };
 
-  // This must be called ONCE after overlay.setMap()
+  // This is automatically called ONCE after overlay.setMap()
   overlay.onAdd = function(){
     var panes = d3.select(this.getPanes().overlayMouseTarget);
 

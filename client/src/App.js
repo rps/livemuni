@@ -2,6 +2,7 @@ lm.App = function(config) {
   this.lastTime = 0;
   this.lastBusArray = [];
   this.lastRouteArray = [];
+  // this.lastStopObj = {}; TODO: undo
 
   // Initialize map
   this.map = new lm.Map(lm.util.extend(config.map, {
@@ -88,7 +89,8 @@ lm.App.prototype.getStopPredictions = function(stopObj){
 
       if(storage.counter === 0){
         delete storage.counter;
-        self.updateOrAddSVG(storage, '.stoplayer', 'stopsvg', 'stop', 'yellow');
+        self.lastStopObj = storage;
+        self.updateOrAddSVG(storage, '.stoplayer', 'stopsvg', 'stop', 'yellow'); // TODO: undo, remove storage
         setTimeout(function(){self.getStopPredictions(stopObj);}, 30000);
         map.routesNotRendered && map.getRoutesFromServer(Object.keys(storage));
       }
@@ -102,6 +104,7 @@ lm.App.prototype.updateOrAddSVG = function(dirObj, selectClassWithDot, clickClas
       svg,
       circ,
       timeleft,
+      // dirObj = this.lastStopObj; TODO: undo
       projection = this.map.projection,
       svgBind = d3.select(selectClassWithDot).selectAll('svg'),
       multiple = !(dirObj instanceof google.maps.LatLng);
@@ -121,6 +124,10 @@ lm.App.prototype.updateOrAddSVG = function(dirObj, selectClassWithDot, clickClas
     .style('top',function(d){ return d.y-10; }) // why doesn't map clickevent pixel loc work?
     .style('left',function(d){ return d.x-10; })
     .attr('class',clickClass);
+
+  // d3.selectAll('.'+clickClass) // TODO: undo
+  //   .style('top',function(d){ return d.y-10; }) // why doesn't map clickevent pixel loc work?
+  //   .style('left',function(d){ return d.x-10; });
 
   if(multiple){
     svg.append('rect')

@@ -9,6 +9,68 @@ html, body, #map-canvas {
   padding: 0;
 }
 
+#navbar {
+  position: fixed;
+  top: 20px;
+  height: 50px;
+  left: 10%;
+  width: 800px;
+  background: rgb(245,171,102); /* Old browsers */
+  background: -moz-linear-gradient(top, rgba(245,171,102,1) 3%, rgba(245,171,102,1) 38%, rgba(239,141,49,1) 99%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(3%,rgba(245,171,102,1)), color-stop(38%,rgba(245,171,102,1)), color-stop(99%,rgba(239,141,49,1))); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, rgba(245,171,102,1) 3%,rgba(245,171,102,1) 38%,rgba(239,141,49,1) 99%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top, rgba(245,171,102,1) 3%,rgba(245,171,102,1) 38%,rgba(239,141,49,1) 99%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, rgba(245,171,102,1) 3%,rgba(245,171,102,1) 38%,rgba(239,141,49,1) 99%); /* IE10+ */
+  background: linear-gradient(to bottom, rgba(245,171,102,1) 3%,rgba(245,171,102,1) 38%,rgba(239,141,49,1) 99%); /* W3C */
+  z-index: 10;
+  border:2px solid black;
+  border-radius:10px;
+}
+
+#navbar ul {
+  top: 0px;
+  height: 100%;
+  width: 96%;
+  list-style: none;
+  float: left;
+  margin: 0 1% 0 1%;
+  padding: 0;
+}
+
+#navbar li {
+  display: inline;
+  padding: 0;
+  margin: 0;
+}
+
+#navbar button {
+  height: 100%;
+  width: 24.75%; 
+  padding: 0;
+  border: none;
+  border-right: 1px solid black;
+  border-left: 1px solid black;
+  text-shadow: 0 -1px 1px rgba(0,0,0,0.25);
+  font-size: 1.25em;
+  font-family: helvetica neue, verdana, sans;
+  color: black;
+  background: rgb(245,171,102); /* Old browsers */
+  background: -moz-linear-gradient(top, rgba(245,171,102,1) 3%, rgba(245,171,102,1) 38%, rgba(239,141,49,1) 99%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(3%,rgba(245,171,102,1)), color-stop(38%,rgba(245,171,102,1)), color-stop(99%,rgba(239,141,49,1))); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, rgba(245,171,102,1) 3%,rgba(245,171,102,1) 38%,rgba(239,141,49,1) 99%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top, rgba(245,171,102,1) 3%,rgba(245,171,102,1) 38%,rgba(239,141,49,1) 99%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, rgba(245,171,102,1) 3%,rgba(245,171,102,1) 38%,rgba(239,141,49,1) 99%); /* IE10+ */
+  background: linear-gradient(to bottom, rgba(245,171,102,1) 3%,rgba(245,171,102,1) 38%,rgba(239,141,49,1) 99%); /* W3C */
+}
+
+#navbar .left {
+  border-left: none;
+}
+
+#navbar .right {
+  border-right: none;
+}
+
 .toplayer, .toplayerRoutes, .clicklayer, .userloclayer, .stoplayer, .toplayer svg, .toplayerRoutes svg, .clicklayer svg, .userloclayer svg, .stoplayer svg {
   position: absolute;
 }

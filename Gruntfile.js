@@ -45,6 +45,7 @@ module.exports = function(grunt) {
       options: {
         '-W030': true,
         '-W083': true,
+        '-W087': true,
         globals: {
           console: true,
           module: true,
@@ -57,16 +58,26 @@ module.exports = function(grunt) {
         files: ['<%= jshint.files %>'],
         tasks: ['newer:jshint']
       },
+      client: {
+        files: ['client/src/*.js'],
+        tasks: ['concat','uglify'],
+      },      
       frontend: {
-        files: ['client/**/*.{css,js,html}'],
+        files: ['client/dist/*.js'],
         options: {
           livereload: true
         }
-      }
+      },
+      pages: {
+        files: ['client/*.{css,html}'],
+        options: {
+          livereload: true
+        }
+      }   
     },
     shell: {
       mongo: {
-        command: 'mongod'
+        command: '/usr/local/bin/mongodb/bin/mongod'
         // options: {
         //   async: true
         // }

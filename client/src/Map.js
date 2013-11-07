@@ -18,9 +18,10 @@ lm.Map = function(config) {
   // called when the position from projection.fromLatLngToPixel() would return a new value for a given LatLng.
   overlay.draw = function(){
     lm.app.bussify(0);
+    // lm.app.updateOrAddSVG('.stoplayer', 'stopsvg', 'stop', 'yellow');
   };
 
-  // This must be called ONCE after overlay.setMap()
+  // This is automatically called ONCE after overlay.setMap()
   overlay.onAdd = function(){
     var panes = d3.select(this.getPanes().overlayMouseTarget);
 
