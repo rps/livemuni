@@ -23,7 +23,7 @@ html, body, #map-canvas {
   background: -ms-linear-gradient(top, rgba(245,171,102,1) 3%,rgba(245,171,102,1) 38%,rgba(239,141,49,1) 99%); /* IE10+ */
   background: linear-gradient(to bottom, rgba(245,171,102,1) 3%,rgba(245,171,102,1) 38%,rgba(239,141,49,1) 99%); /* W3C */
   z-index: 10;
-  border:2px solid black;
+  border:1px solid black;
   border-radius:10px;
 }
 
@@ -49,7 +49,6 @@ html, body, #map-canvas {
   padding: 0;
   border: none;
   border-right: 1px solid black;
-  border-left: 1px solid black;
   text-shadow: 0 -1px 1px rgba(0,0,0,0.25);
   font-size: 1.25em;
   font-family: helvetica neue, verdana, sans;

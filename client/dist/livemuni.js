@@ -47,13 +47,13 @@ lm.util.extend = function() {
 
 lm.App.prototype.setupMap = function (argument) {
   // Load initial content
-  this.generateAndRenderData();
+  this.fetchAndRenderVehicles();
 
   // Start polling
-  setInterval(this.generateAndRenderData.bind(this), 10000);
+  setInterval(this.fetchAndRenderVehicles.bind(this), 10000);
 };
 
-lm.App.prototype.generateAndRenderData = function() {
+lm.App.prototype.fetchAndRenderVehicles = function() {
   var bounds = this.map.getBounds();
   var southWest = bounds.getSouthWest();
   var northEast = bounds.getNorthEast();
@@ -76,6 +76,7 @@ lm.App.prototype.generateAndRenderData = function() {
       }
 
       if(
+      (!self.lastRouteArray.length || self.lastRouteArray.indexOf(doc.children[i].attr.routeTag) > -1) && // validate against eligible routes, if any listed
       (southWest.lat() <= Number(doc.children[i].attr.lat) && Number(doc.children[i].attr.lat) <= northEast.lat()) && // Remove bus markers placed
       (southWest.lng() <= Number(doc.children[i].attr.lon) && Number(doc.children[i].attr.lon) <= northEast.lng()) && // outside the screen.
       (doc.children[i].attr.secsSinceReport && doc.children[i].attr.secsSinceReport < 180) &&                 // Remove 180sec old markers.
@@ -96,8 +97,10 @@ lm.App.prototype.getStopPredictions = function(stopObj){
   var query = 'http://webservices.nextbus.com/service/publicXMLFeed?command=predictionsForMultiStops&a=sf-muni';
   var map = this.map;
   var self = this;
+  this.lastRouteArray = [];
 
   for(var route in stopObj){
+    this.lastRouteArray.push(route);
     query+='&stops='+route+'|'+stopObj[route].stopTag;
   }
 
