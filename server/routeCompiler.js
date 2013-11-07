@@ -1,11 +1,9 @@
 var fs = require('fs');
 var req = require('request');
-var xmldoc = require('./lib/xmldoc');
+var xmldoc = require('xmldoc');
 var MongoClient = require('mongodb').MongoClient,
     format = require('util').format,
     Server = require('mongodb').Server;
-// var gm = require('googlemaps'),
-    // util = require('util');
 // mongod --dbpath /path/to/livemuni/db
 
 var mongoClient = new MongoClient(new Server('localhost', 27017));
@@ -119,10 +117,6 @@ var insertIntoDB = function(routeObj, dbInfo){
   });
 };
 
-
-
-// query stopTags: db.busroutes.find({'stops':{$elemMatch:{'stopTag':"3311"}}})
-
 exports.listAllRoutes = function(cb, originalres){
   console.log('listAllRoutes');
   var routesdb = mongoClient.db('routesdb'); // TODO: use connect function
@@ -137,7 +131,7 @@ exports.listAllRoutes = function(cb, originalres){
 exports.findRoutesNear = findRoutesNear = function(coordinates, cb){
   var dbInfo = connect('routesdb','busroutes');
   // callback array of string stopnames within .4 miles. maxdistradians is .4 / 69
-  console.log('findroutesnear',coordinates)
+  console.log('findroutesnear',coordinates);
   dbInfo.busroutes.distinct('routename',{'stopsOutbound.lonlat': { $near: coordinates, $maxDistance: 0.00578745247 }},function(err,res){
     if(err) throw err;
     var routesObj = {}; // could give this a length property = res.length, then use to determine which obj to iterate over in eligibleRoutes
@@ -160,11 +154,11 @@ exports.eligibleRoutes = function(userCoord, destCoord, direction, res){
   };
   routeComparator.setUser = function(routesNearUser){
     this.routesNearUser = routesNearUser;
-    findRoutesNear(this.destCoord, this.compareRoutes); 
+    findRoutesNear(this.destCoord, this.compareRoutes);
   };
   routeComparator.compareRoutes = function(routesNearDest){
     console.log(Object.keys(this.routesNearUser).length, 'keylength');
-    console.log(this.routesNearUser,'xxxxxxxxxxxxxxxxxxxxxxxx', routesNearDest)
+    console.log(this.routesNearUser,'\n\n\n\n', routesNearDest);
     for(var key in routesNearDest){
       this.routesNearUser[key] && this.sharedRoutes.push(key);
     }
@@ -268,5 +262,4 @@ var routeDecompiler = function(aRoute, globalMind){
       }
     });
   }
-
 };

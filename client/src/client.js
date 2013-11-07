@@ -13,7 +13,7 @@ var lm = {
       ]
     },
     offset: 10,
-    direction: 'Outbound',
+    direction: 'Outbound'
   },
   init: function() {
     // Start app

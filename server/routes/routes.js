@@ -2,7 +2,7 @@ var fs = require('fs');
 var http = require('http');
 var path = require('path');
 var url = require('url');
-var routeCompiler = require('../../routeCompiler.js');
+var routeCompiler = require('../routeCompiler.js');
 
 exports.index = function(req, res){
   var readStream = fs.createReadStream(path.join(__dirname, '../../client/index.html')).pipe(res);
@@ -16,7 +16,11 @@ exports.files = function(req, res){
 };
 
 exports.main = function(req, res){
-  var readStream = fs.createReadStream(path.join(__dirname, '../../client', req.url)).pipe(res);
+  var readStream = fs.createReadStream(path.join(__dirname, '../../client/dist/livemuni.min.js')).pipe(res);
+};
+
+exports.style = function(req, res){
+  var readStream = fs.createReadStream(path.join(__dirname, '../../client/style.css')).pipe(res);
 };
 
 exports.pathgen = function(req, res){

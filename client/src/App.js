@@ -31,7 +31,7 @@ lm.App.prototype.generateAndRenderData = function() {
       return;
     }
     var busArray = [];
-    var doc = new XmlDocument(res.response);
+    var doc = new XmlDocument(res.response); // TODO: move to server
 
     // 66% reduction in buses when filtering out LatLon
     for(var i = 0; i<doc.children.length; i++){

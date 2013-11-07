@@ -8,7 +8,7 @@ var routes = require('./routes/routes.js');
 var http = require('http');
 var path = require('path');
 var config = require('../config.js');
-var routeCompiler = require('../routeCompiler.js');
+var routeCompiler = require('./routeCompiler.js');
 var fs = require('fs');
 
 var app = express();
@@ -31,11 +31,9 @@ if ('development' == app.get('env')) {
 }
 
 app.get('/', routes.index);
-app.get('/lib*', routes.files); // rewrite
-app.get('/style.css', routes.main);
-app.get('/client.js', routes.main);
-app.get('/App.js', routes.main);
-app.get('/Map.js', routes.main);
+app.get('/style.css', routes.style);
+app.get('/lib*', routes.files); // TODO remove
+app.get('/livemuni.js', routes.main);
 app.get('/genpath', routes.pathgen);
 app.get('/generatePath.js', generatePathData);
 app.get('/triggerPathGen', triggerPathGen);
@@ -70,10 +68,10 @@ function cbcontinue(routeData, originalres){
   }
   console.log('triggerPathGen');
   var direction = 'Outbound'; // TODO change
-  var callback = function(data){ 
+  var callback = function(data){
     console.log('called back');
     originalres.set('Content-Type', 'application/javascript');
-    originalres.send(data); 
+    originalres.send(data);
   };
   routeCompiler.queryRouteData(callback, direction, routes);
 }

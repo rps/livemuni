@@ -87,3 +87,5 @@ OLD: Bus Routes = {
 
 // copy items from one collection to the other
 db.mapobjects.find().forEach(function(doc){db.mapobjectsInbound.save(doc)});
+
+// query stopTags: db.busroutes.find({'stops':{$elemMatch:{'stopTag':"3311"}}})

@@ -5,15 +5,12 @@
     <link rel='stylesheet' href='style.css'>
 
     <script src='https://maps.googleapis.com/maps/api/js?key=AIzaSyB6R7BKvhzRFK8YNp7y_MVYfrS7JUEWYSQ&sensor=true'></script>
-    <script src='http://d3js.org/d3.v3.min.js' charset='utf-8'></script>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/d3/3.3.9/d3.min.js' charset='utf-8'></script>
     <script src='lib/sax.js'></script>
     <script src='lib/xmldoc.js'></script>
-    <script src='lib/stringifiedMuniRoutes.js'></script>
-    <script src='client.js'></script>
-    <script src='App.js'></script>
-    <script src='Map.js'></script>
+    <script src='livemuni.js'></script>
     <script>
-      // This is cheap. You should use DOMContentLoaded or addEventListener or anyhthing not stupid like this
+      // TODO: use DOMContentLoaded or addEventListener
       window.onload = lm.init;
     </script>
   </head>
