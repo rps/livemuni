@@ -255,5 +255,5 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       .attr('dy', '.31em')
       .attr('fill','black')
       .text(function(d){ return d.route; });
-    }
+  }
 };
