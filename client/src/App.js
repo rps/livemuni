@@ -46,8 +46,8 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
 
       if(
       (!self.lastRouteArray.length || self.lastRouteArray.indexOf(doc.children[i].attr.routeTag) > -1) && // validate against eligible routes, if any listed
-      (southWest.lat() <= Number(doc.children[i].attr.lat) && Number(doc.children[i].attr.lat) <= northEast.lat()) && // Remove bus markers placed
-      (southWest.lng() <= Number(doc.children[i].attr.lon) && Number(doc.children[i].attr.lon) <= northEast.lng()) && // outside the screen.
+      (southWest.lat()-0.01 <= Number(doc.children[i].attr.lat) && Number(doc.children[i].attr.lat) <= northEast.lat()+0.01) && // Remove bus markers placed
+      (southWest.lng()-0.01 <= Number(doc.children[i].attr.lon) && Number(doc.children[i].attr.lon) <= northEast.lng()+0.01) && // outside the screen.
       (doc.children[i].attr.secsSinceReport && doc.children[i].attr.secsSinceReport < 180) &&                 // Remove 180sec old markers.
       (doc.children[i].attr.dirTag && doc.children[i].attr.dirTag.indexOf(lm.getDirection()) > -1)          // Remove wrong direction bus.
       ){
@@ -193,7 +193,7 @@ lm.App.prototype.bussify = function(enableTransitions){
 *************/
 
 if(this.userloc){
-  
+
   var userSvgBind = d3.select('.userloclayer').selectAll('svg')
     .data(this.userloc)
     .each(latLngToPx);
@@ -208,6 +208,29 @@ if(this.userloc){
     .attr('cy',10)
     .attr('class','user')
     .style('fill','blue');  
+}  
+
+/*************
+  D e s t s
+*************/
+
+
+if(this.destloc){
+
+  var destSvgBind = d3.select('.clicklayer').selectAll('svg')
+    .data(this.destloc)
+    .each(latLngToPx);
+
+  var destSvg = destSvgBind.enter().append('svg')
+    .each(latLngToPx)
+    .attr('class','clicksvg');
+
+  var destCirc = destSvg.append('circle')
+    .attr('r', 8)
+    .attr('cx',10)
+    .attr('cy',10)
+    .attr('class','dest')
+    .style('fill','black');  
 }  
 
 /************* 

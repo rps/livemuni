@@ -53,6 +53,10 @@ lm.App.prototype.setupMap = function (argument) {
   setInterval(this.fetchAndRenderVehicles.bind(this), 10000);
 };
 
+lm.App.prototype.set = function(variable, value){
+  this[variable] = value;
+};
+
 lm.App.prototype.fetchAndRenderVehicles = function() {
   var bounds = this.map.getBounds();
   var southWest = bounds.getSouthWest();
@@ -77,8 +81,8 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
 
       if(
       (!self.lastRouteArray.length || self.lastRouteArray.indexOf(doc.children[i].attr.routeTag) > -1) && // validate against eligible routes, if any listed
-      (southWest.lat() <= Number(doc.children[i].attr.lat) && Number(doc.children[i].attr.lat) <= northEast.lat()) && // Remove bus markers placed
-      (southWest.lng() <= Number(doc.children[i].attr.lon) && Number(doc.children[i].attr.lon) <= northEast.lng()) && // outside the screen.
+      (southWest.lat()-0.01 <= Number(doc.children[i].attr.lat) && Number(doc.children[i].attr.lat) <= northEast.lat()+0.01) && // Remove bus markers placed
+      (southWest.lng()-0.01 <= Number(doc.children[i].attr.lon) && Number(doc.children[i].attr.lon) <= northEast.lng()+0.01) && // outside the screen.
       (doc.children[i].attr.secsSinceReport && doc.children[i].attr.secsSinceReport < 180) &&                 // Remove 180sec old markers.
       (doc.children[i].attr.dirTag && doc.children[i].attr.dirTag.indexOf(lm.getDirection()) > -1)          // Remove wrong direction bus.
       ){
@@ -142,7 +146,7 @@ lm.App.prototype.updateOrAddSVG = function(dirObj, selectClassWithDot, clickClas
       svg,
       circ,
       timeleft,
-      // dirObj = this.lastStopObj; TODO: undo
+      // dirObj = this.lastStopObj,
       projection = this.map.projection,
       svgBind = d3.select(selectClassWithDot).selectAll('svg'),
       multiple = !(dirObj instanceof google.maps.LatLng);
@@ -219,6 +223,55 @@ lm.App.prototype.bussify = function(enableTransitions){
       .style('top', (d.y - lm.config.offset) +  'px');
     };
 
+/*************
+  U s e r s
+*************/
+
+if(this.userloc){
+
+  var userSvgBind = d3.select('.userloclayer').selectAll('svg')
+    .data(this.userloc)
+    .each(latLngToPx);
+
+  var userSvg = userSvgBind.enter().append('svg')
+    .each(latLngToPx)
+    .attr('class','usersvg');
+
+  var userCirc = userSvg.append('circle')
+    .attr('r', 8)
+    .attr('cx',10)
+    .attr('cy',10)
+    .attr('class','user')
+    .style('fill','blue');  
+}  
+
+/*************
+  D e s t s
+*************/
+
+
+if(this.destloc){
+
+  var destSvgBind = d3.select('.clicklayer').selectAll('svg')
+    .data(this.destloc)
+    .each(latLngToPx);
+
+  var destSvg = destSvgBind.enter().append('svg')
+    .each(latLngToPx)
+    .attr('class','clicksvg');
+
+  var destCirc = destSvg.append('circle')
+    .attr('r', 8)
+    .attr('cx',10)
+    .attr('cy',10)
+    .attr('class','dest')
+    .style('fill','black');  
+}  
+
+/************* 
+  B u s s e s 
+**************/
+
   var busLayer = d3.select('.toplayer');
 
   //create SVG containers
@@ -275,10 +328,9 @@ lm.App.prototype.bussify = function(enableTransitions){
   // TODO: REMOVE GLOBAL
   var directionsService = window.directionsService = new google.maps.DirectionsService();
 
-  // called when the position from projection.fromLatLngToPixel() would return a new value for a given LatLng.
+  // Called when the position from projection.fromLatLngToPixel() would return a new value for a given LatLng.
   overlay.draw = function(){
     lm.app.bussify(0);
-    // lm.app.updateOrAddSVG('.stoplayer', 'stopsvg', 'stop', 'yellow');
   };
 
   // This is automatically called ONCE after overlay.setMap()
@@ -344,20 +396,38 @@ lm.Map.prototype.getBounds = function() {
 
 lm.Map.prototype.waitForDestinationClick = function(userPosition){
   var self = this;
-  // var userLonLat = [userPosition.coords.longitude, userPosition.coords.latitude]; // not accurate in browser, may be accurate in phone
-  userPosition = {coords:{latitude:37.783594,longitude: -122.408904}}; // fake TODO fix
+  var clickedOnce = false;
+  // var userLonLat = [userPosition.coords.lon, userPosition.coords.lat]; // not accurate in browser, may be accurate in phone
+  userPosition = {coords:{lat:37.783594,lon: -122.408904}}; // fake TODO fix
   var userLonLat = [-122.408904,37.783594];                            // fake TODO fix
   var userMapLatLng = new google.maps.LatLng(userLonLat[1],userLonLat[0]);
-  lm.app.updateOrAddSVG(userMapLatLng, '.userloclayer', 'usersvg', 'user', 'blue');
-  var location = new google.maps.LatLng(userPosition.coords.latitude, userPosition.coords.longitude);
+  
+  lm.app.set('userloc',[userPosition.coords]);
+  lm.app.bussify(0);
+  
+  var location = new google.maps.LatLng(userPosition.coords.lat, userPosition.coords.lon);
   this.gMap.setCenter(location);
 
-  // may be good to toggle w/ button click on menu
+  // TODO : toggle w/ button click on menu
   google.maps.event.addListener(map, 'click', function(e) {
-    var destLonLat = [e.latLng.lng(), e.latLng.lat()];
-    lm.config.direction = (destLonLat[0] < userLonLat[0]) ? 'Outbound' : 'Inbound'; // rough prediction of inbound/outbound
-    lm.app.updateOrAddSVG(e.latLng, '.clicklayer','clicksvg','dest', 'black');
-    self.sendCoordsToServer(userLonLat, destLonLat);
+    clickedOnce = true;
+    // Workaround to avoid double-clicks triggering click events
+    setTimeout(function(){
+      if(clickedOnce){
+        google.maps.event.clearListeners(map, 'click');
+        
+        var destLonLat = [e.latLng.lng(), e.latLng.lat()];
+        lm.app.set('destloc', [{lon: destLonLat[0],lat:destLonLat[1]}]);
+        lm.app.bussify(0);
+        lm.config.direction = (destLonLat[0] < userLonLat[0]) ? 'Outbound' : 'Inbound'; // rough prediction of inbound/outbound
+        
+        self.sendCoordsToServer(userLonLat, destLonLat);
+      }
+    },500); // Half-second delay to distinguish clicks and dblclicks
+  });
+
+  google.maps.event.addListener(map, 'dblclick', function(e) {
+     clickedOnce = false;
   });
 };
 

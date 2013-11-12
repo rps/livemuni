@@ -15,10 +15,9 @@ lm.Map = function(config) {
   // TODO: REMOVE GLOBAL
   var directionsService = window.directionsService = new google.maps.DirectionsService();
 
-  // called when the position from projection.fromLatLngToPixel() would return a new value for a given LatLng.
+  // Called when the position from projection.fromLatLngToPixel() would return a new value for a given LatLng.
   overlay.draw = function(){
     lm.app.bussify(0);
-    // lm.app.updateOrAddSVG('.stoplayer', 'stopsvg', 'stop', 'yellow');
   };
 
   // This is automatically called ONCE after overlay.setMap()
@@ -84,22 +83,38 @@ lm.Map.prototype.getBounds = function() {
 
 lm.Map.prototype.waitForDestinationClick = function(userPosition){
   var self = this;
+  var clickedOnce = false;
   // var userLonLat = [userPosition.coords.lon, userPosition.coords.lat]; // not accurate in browser, may be accurate in phone
   userPosition = {coords:{lat:37.783594,lon: -122.408904}}; // fake TODO fix
   var userLonLat = [-122.408904,37.783594];                            // fake TODO fix
   var userMapLatLng = new google.maps.LatLng(userLonLat[1],userLonLat[0]);
+  
   lm.app.set('userloc',[userPosition.coords]);
-  // lm.app.updateOrAddSVG(userMapLatLng, '.userloclayer', 'usersvg', 'user', 'blue');
   lm.app.bussify(0);
+  
   var location = new google.maps.LatLng(userPosition.coords.lat, userPosition.coords.lon);
   this.gMap.setCenter(location);
 
-  // may be good to toggle w/ button click on menu
+  // TODO : toggle w/ button click on menu
   google.maps.event.addListener(map, 'click', function(e) {
-    var destLonLat = [e.latLng.lng(), e.latLng.lat()];
-    lm.config.direction = (destLonLat[0] < userLonLat[0]) ? 'Outbound' : 'Inbound'; // rough prediction of inbound/outbound
-    lm.app.updateOrAddSVG(e.latLng, '.clicklayer','clicksvg','dest', 'black');
-    self.sendCoordsToServer(userLonLat, destLonLat);
+    clickedOnce = true;
+    // Workaround to avoid double-clicks triggering click events
+    setTimeout(function(){
+      if(clickedOnce){
+        google.maps.event.clearListeners(map, 'click');
+        
+        var destLonLat = [e.latLng.lng(), e.latLng.lat()];
+        lm.app.set('destloc', [{lon: destLonLat[0],lat:destLonLat[1]}]);
+        lm.app.bussify(0);
+        lm.config.direction = (destLonLat[0] < userLonLat[0]) ? 'Outbound' : 'Inbound'; // rough prediction of inbound/outbound
+        
+        self.sendCoordsToServer(userLonLat, destLonLat);
+      }
+    },500); // Half-second delay to distinguish clicks and dblclicks
+  });
+
+  google.maps.event.addListener(map, 'dblclick', function(e) {
+     clickedOnce = false;
   });
 };
 
