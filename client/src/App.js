@@ -218,6 +218,7 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       .style('fill','black');
   }
 
+  // TODO: fadein for buses
   var circ = svg.append('circle')
     .attr('r', 9)
     .attr('cx',10)
@@ -225,17 +226,18 @@ lm.App.prototype.addThings = function(type, enableTransitions){
     .attr('class',settings[type].itemClass);
   
   if(type === 'bus'){
-    circ.style('fill-opacity',0.7)
+    circ.style('fill-opacity',0.9)
     .style('stroke-width','1.5px')
-    .style('fill',function(){return '#'+(~~(Math.random()*(1<<24))).toString(16);}); //colors
+    .style('fill',function(d){return self.map.allRouteColors[d.routeTag].color; });
 
     svg.append('text')
       .attr('x',lm.config.offset/2)
       .attr('y',lm.config.offset)
       .attr('dy', '.31em')
-      .attr('fill','black')
+      .style('fill',function(d){ return self.map.allRouteColors[d.routeTag].oppcolor; })
       .text(function(d){return d.routeTag;});
-  
+  } else if(type === 'stop') {
+    circ.style('fill',function(d){ return self.map.allRouteColors[d.route].color; });
   } else {
     circ.style('fill',settings[type].fill);
   }
@@ -257,7 +259,7 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       .attr('x',4)
       .attr('y',10)
       .attr('dy', '.31em')
-      .attr('fill','black')
+      .style('fill', function(d){ return self.map.allRouteColors[d.route].oppcolor; })
       .text(function(d){ return d.route; });
   }
 };

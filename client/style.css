@@ -89,7 +89,7 @@ html, body, #map-canvas {
 .stoplayer svg {
   width: 60px;
   height: 40px;
-  font: 9px sans-serif;
+  font: 10px sans-serif;
   font-weight: bold;
   font-color: black;
 }
