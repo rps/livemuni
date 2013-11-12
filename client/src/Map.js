@@ -17,7 +17,7 @@ lm.Map = function(config) {
 
   // Called when the position from projection.fromLatLngToPixel() would return a new value for a given LatLng.
   overlay.draw = function(){
-    lm.app.bussify(0);
+    lm.app.adjustItemsOnMap(0);
   };
 
   // This is automatically called ONCE after overlay.setMap()
@@ -33,8 +33,8 @@ lm.Map = function(config) {
     self.routeLayer = panes.append('div')
     .attr('class', 'toplayerRoutes');
 
-    self.clickLayer = panes.append('div')
-    .attr('class', 'clicklayer');
+    self.destloclayer = panes.append('div')
+    .attr('class', 'destloclayer');
 
     self.userLocLayer = panes.append('div')
     .attr('class', 'userloclayer');
@@ -90,7 +90,7 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
   var userMapLatLng = new google.maps.LatLng(userLonLat[1],userLonLat[0]);
   
   lm.app.set('userloc',[userPosition.coords]);
-  lm.app.bussify(0);
+  lm.app.adjustItemsOnMap(0);
   
   var location = new google.maps.LatLng(userPosition.coords.lat, userPosition.coords.lon);
   this.gMap.setCenter(location);
@@ -105,7 +105,7 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
         
         var destLonLat = [e.latLng.lng(), e.latLng.lat()];
         lm.app.set('destloc', [{lon: destLonLat[0],lat:destLonLat[1]}]);
-        lm.app.bussify(0);
+        lm.app.adjustItemsOnMap(0);
         lm.config.direction = (destLonLat[0] < userLonLat[0]) ? 'Outbound' : 'Inbound'; // rough prediction of inbound/outbound
         
         self.sendCoordsToServer(userLonLat, destLonLat);

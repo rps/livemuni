@@ -75,11 +75,11 @@ html, body, #map-canvas {
   border-right: none;
 }
 
-.toplayer, .toplayerRoutes, .clicklayer, .userloclayer, .stoplayer, .toplayer svg, .toplayerRoutes svg, .clicklayer svg, .userloclayer svg, .stoplayer svg {
+.toplayer, .toplayerRoutes, .destloclayer, .userloclayer, .stoplayer, .toplayer svg, .toplayerRoutes svg, .destloclayer svg, .userloclayer svg, .stoplayer svg {
   position: absolute;
 }
 
-.toplayer svg, .clicklayer svg, .userloclayer svg {
+.toplayer svg, .destloclayer svg, .userloclayer svg {
   width: 40px;
   height: 20px;
   font: 9px sans-serif;
