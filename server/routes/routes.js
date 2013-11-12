@@ -16,7 +16,7 @@ exports.files = function(req, res){
 };
 
 exports.main = function(req, res){
-  var readStream = fs.createReadStream(path.join(__dirname, '../../client/dist/livemuni.min.js')).pipe(res);
+  var readStream = fs.createReadStream(path.join(__dirname, '../../client/dist/livemuni.js')).pipe(res);
 };
 
 exports.style = function(req, res){

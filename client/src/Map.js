@@ -84,12 +84,14 @@ lm.Map.prototype.getBounds = function() {
 
 lm.Map.prototype.waitForDestinationClick = function(userPosition){
   var self = this;
-  // var userLonLat = [userPosition.coords.longitude, userPosition.coords.latitude]; // not accurate in browser, may be accurate in phone
-  userPosition = {coords:{latitude:37.783594,longitude: -122.408904}}; // fake TODO fix
+  // var userLonLat = [userPosition.coords.lon, userPosition.coords.lat]; // not accurate in browser, may be accurate in phone
+  userPosition = {coords:{lat:37.783594,lon: -122.408904}}; // fake TODO fix
   var userLonLat = [-122.408904,37.783594];                            // fake TODO fix
   var userMapLatLng = new google.maps.LatLng(userLonLat[1],userLonLat[0]);
-  lm.app.updateOrAddSVG(userMapLatLng, '.userloclayer', 'usersvg', 'user', 'blue');
-  var location = new google.maps.LatLng(userPosition.coords.latitude, userPosition.coords.longitude);
+  lm.app.set('userloc',[userPosition.coords]);
+  // lm.app.updateOrAddSVG(userMapLatLng, '.userloclayer', 'usersvg', 'user', 'blue');
+  lm.app.bussify(0);
+  var location = new google.maps.LatLng(userPosition.coords.lat, userPosition.coords.lon);
   this.gMap.setCenter(location);
 
   // may be good to toggle w/ button click on menu

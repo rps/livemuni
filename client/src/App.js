@@ -18,6 +18,10 @@ lm.App.prototype.setupMap = function (argument) {
   setInterval(this.fetchAndRenderVehicles.bind(this), 10000);
 };
 
+lm.App.prototype.set = function(variable, value){
+  this[variable] = value;
+};
+
 lm.App.prototype.fetchAndRenderVehicles = function() {
   var bounds = this.map.getBounds();
   var southWest = bounds.getSouthWest();
@@ -107,7 +111,7 @@ lm.App.prototype.updateOrAddSVG = function(dirObj, selectClassWithDot, clickClas
       svg,
       circ,
       timeleft,
-      // dirObj = this.lastStopObj; TODO: undo
+      // dirObj = this.lastStopObj,
       projection = this.map.projection,
       svgBind = d3.select(selectClassWithDot).selectAll('svg'),
       multiple = !(dirObj instanceof google.maps.LatLng);
@@ -183,6 +187,32 @@ lm.App.prototype.bussify = function(enableTransitions){
       .style('left', (d.x - lm.config.offset) + 'px')
       .style('top', (d.y - lm.config.offset) +  'px');
     };
+
+/*************
+  U s e r s
+*************/
+
+if(this.userloc){
+  
+  var userSvgBind = d3.select('.userloclayer').selectAll('svg')
+    .data(this.userloc)
+    .each(latLngToPx);
+
+  var userSvg = userSvgBind.enter().append('svg')
+    .each(latLngToPx)
+    .attr('class','usersvg');
+
+  var userCirc = userSvg.append('circle')
+    .attr('r', 8)
+    .attr('cx',10)
+    .attr('cy',10)
+    .attr('class','user')
+    .style('fill','blue');  
+}  
+
+/************* 
+  B u s s e s 
+**************/
 
   var busLayer = d3.select('.toplayer');
 
