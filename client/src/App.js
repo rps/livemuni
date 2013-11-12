@@ -2,7 +2,7 @@ lm.App = function(config) {
   this.lastTime = 0;
   this.lastBusArray = [];
   this.lastRouteArray = [];
-  // this.lastStopObj = {}; TODO: undo
+  this.lastStopObj = {};
 
   // Initialize map
   this.map = new lm.Map(lm.util.extend(config.map, {
@@ -23,11 +23,11 @@ lm.App.prototype.set = function(variable, value){
 };
 
 lm.App.prototype.fetchAndRenderVehicles = function() {
-  var bounds = this.map.getBounds();
-  var southWest = bounds.getSouthWest();
-  var northEast = bounds.getNorthEast();
-  var projection = this.map.projection;
-  var self = this;
+  var bounds = this.map.getBounds(),
+      southWest = bounds.getSouthWest(),
+      northEast = bounds.getNorthEast(),
+      projection = this.map.projection,
+      self = this;
 
   // Always pulls last 15m. To use self.lastTime with D3, will need to implement websockets.
   d3.xhr('http://webservices.nextbus.com/service/publicXMLFeed?command=vehicleLocations&a=sf-muni&t='+'0', function(err,res){
@@ -35,8 +35,8 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
       console.error('Error: ',err);
       return;
     }
-    var busArray = [];
-    var doc = new XmlDocument(res.response); // TODO: move to server
+    var busArray = [],
+        doc = new XmlDocument(res.response); // TODO: move to server
 
     // 66% reduction in buses when filtering out LatLon
     for(var i = 0; i<doc.children.length; i++){
@@ -63,13 +63,14 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
 };
 
 lm.App.prototype.getStopPredictions = function(stopObj){
-  var query = 'http://webservices.nextbus.com/service/publicXMLFeed?command=predictionsForMultiStops&a=sf-muni';
-  var map = this.map;
-  var self = this;
+  var query = 'http://webservices.nextbus.com/service/publicXMLFeed?command=predictionsForMultiStops&a=sf-muni',
+      map = this.map,
+      self = this;
+
   this.lastRouteArray = [];
 
   for(var route in stopObj){
-    this.lastRouteArray.push(route);
+    this.lastRouteArray.push(route); // Filters out nonessential buses in fetchAndRenderVehnicles
     query+='&stops='+route+'|'+stopObj[route].stopTag;
   }
 
@@ -78,18 +79,20 @@ lm.App.prototype.getStopPredictions = function(stopObj){
       console.log('Prediction error: ',err);
     }
 
-    var doc = new XmlDocument(res.response);
-    var storage = { counter:doc.children.length };
+    var doc = new XmlDocument(res.response),
+        storage = { counter:doc.children.length };
 
     doc.eachChild(function(child){
       storage.counter--;
 
       if(child.children.length > 0){
         if(child.children[0].name !== 'message'){
-          var name = child.attr.routeTag;
-          var latLng = new google.maps.LatLng(stopObj[name].lonlat[1], stopObj[name].lonlat[0]);
-          var minutes = child.children[0].children[0].attr.minutes;
-          storage[name] = { latLng: latLng, minutes: minutes };
+          var name = child.attr.routeTag,
+              lat = stopObj[name].lonlat[1], 
+              lon = stopObj[name].lonlat[0],
+              minutes = child.children[0].children[0].attr.minutes;
+
+          storage[name] = { lat: lat, lon: lon, minutes: minutes };
           // Could send route requests individually here, but db connection might get overloaded
         }
       }
@@ -97,7 +100,7 @@ lm.App.prototype.getStopPredictions = function(stopObj){
       if(storage.counter === 0){
         delete storage.counter;
         self.lastStopObj = storage;
-        self.updateOrAddSVG(storage, '.stoplayer', 'stopsvg', 'stop', 'yellow'); // TODO: undo, remove storage
+        self.bussify(0);
         setTimeout(function(){self.getStopPredictions(stopObj);}, 30000);
         map.routesNotRendered && map.getRoutesFromServer(Object.keys(storage));
       }
@@ -106,76 +109,9 @@ lm.App.prototype.getStopPredictions = function(stopObj){
   });
 };
 
-lm.App.prototype.updateOrAddSVG = function(dirObj, selectClassWithDot, clickClass, circleClass, circleColor){
-  var pixelData = [],
-      svg,
-      circ,
-      timeleft,
-      // dirObj = this.lastStopObj,
-      projection = this.map.projection,
-      svgBind = d3.select(selectClassWithDot).selectAll('svg'),
-      multiple = !(dirObj instanceof google.maps.LatLng);
-
-  if(!multiple){
-    pixelData.push(projection.fromLatLngToDivPixel(dirObj));
-    svgBind = svgBind.data(pixelData);
-  } else {
-    for (var key in dirObj){
-      var tempdata = projection.fromLatLngToDivPixel(dirObj[key].latLng);
-      pixelData.push({x:tempdata.x, y:tempdata.y, route: key, time: dirObj[key].minutes});
-    }
-    svgBind = svgBind.data(pixelData, function(d){ return d.route; });
-  }
-
-  svg = svgBind.enter().append('svg')
-    .style('top',function(d){ return d.y-10; }) // why doesn't map clickevent pixel loc work?
-    .style('left',function(d){ return d.x-10; })
-    .attr('class',clickClass);
-
-  // d3.selectAll('.'+clickClass) // TODO: undo
-  //   .style('top',function(d){ return d.y-10; }) // why doesn't map clickevent pixel loc work?
-  //   .style('left',function(d){ return d.x-10; });
-
-  if(multiple){
-    svg.append('rect')
-      .attr('x',10)
-      .attr('y',5)
-      .attr('width',40)
-      .attr('height',10)
-      .style('fill','black');
-  }
-
-  circ = svg.append('circle')
-    .attr('r', 8)
-    .attr('cx',10)
-    .attr('cy',10)
-    .attr('class',circleClass)
-    .style('fill',circleColor);
-
-  if(multiple){
-    timeLeft = svg.append('text')
-      .attr('x',20)
-      .attr('y',10)
-      .attr('dy', '.31em')
-      .attr('fill','white')
-      .attr('class','timetext');
-
-    d3.selectAll('.timetext')
-      .data(pixelData, function(d){ return d.route; })
-      .text(function(d){ return d.time+' min';});
-
-    svg.append('text')
-      .attr('x',4)
-      .attr('y',10)
-      .attr('dy', '.31em')
-      .attr('fill','black')
-      .text(function(d){ return d.route; });
-  }
-};
-
 lm.App.prototype.bussify = function(enableTransitions){
-  var self = this;
-  var busArray = this.lastBusArray;
+  var self = this,
+      busArray = this.lastBusArray;
 
   var latLngToPx = function(d) {
     d = new google.maps.LatLng(d.lat, d.lon);
@@ -207,7 +143,9 @@ if(this.userloc){
     .attr('cx',10)
     .attr('cy',10)
     .attr('class','user')
-    .style('fill','blue');  
+    .style('fill','blue');
+
+  this.userloc = undefined; 
 }  
 
 /*************
@@ -230,17 +168,70 @@ if(this.destloc){
     .attr('cx',10)
     .attr('cy',10)
     .attr('class','dest')
-    .style('fill','black');  
+    .style('fill','red');  
+
+  this.destloc = undefined;
 }  
+
+/************* 
+  S t o p s
+**************/
+
+if(this.lastStopObj){
+  var dirObj = this.lastStopObj,
+      pixelData = [];
+
+  for(var key in dirObj){
+    pixelData.push({lat:dirObj[key].lat, lon:dirObj[key].lon, route: key, time: dirObj[key].minutes});
+  }
+
+  var stopSvgBind = d3.select('.stoplayer').selectAll('svg')
+    .data(pixelData, function(d){ return d.route; })
+    .each(latLngToPx);
+
+  var stopSvg = stopSvgBind.enter().append('svg')
+    .each(latLngToPx)
+    .attr('class','stopsvg');
+
+  stopSvg.append('rect')
+    .attr('x',10)
+    .attr('y',5)
+    .attr('width',40)
+    .attr('height',10)
+    .style('fill','black');
+
+  var stopCirc = stopSvg.append('circle')
+    .attr('r', 8)
+    .attr('cx',10)
+    .attr('cy',10)
+    .attr('class','stop')
+    .style('fill','yellow');  
+
+  var timeLeft = stopSvg.append('text')
+      .attr('x',20)
+      .attr('y',10)
+      .attr('dy', '.31em')
+      .attr('fill','white')
+      .attr('class','timetext');
+
+  d3.selectAll('.timetext')
+    .data(pixelData, function(d){ return d.route; })
+    .text(function(d){ return d.time+' min';});
+
+  stopSvg.append('text')
+    .attr('x',4)
+    .attr('y',10)
+    .attr('dy', '.31em')
+    .attr('fill','black')
+    .text(function(d){ return d.route; });
+}
 
 /************* 
   B u s s e s 
 **************/
 
-  var busLayer = d3.select('.toplayer');
-
   //create SVG containers
-  var busContainer = busLayer.selectAll('.busContainer') // select all svg elements
+  var busContainer = d3.select('.toplayer').selectAll('.busContainer') // select all svg elements
     .data(busArray, function(d){ return d.id; })
     .each(latLngToPx);
 

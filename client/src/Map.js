@@ -110,7 +110,7 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
         
         self.sendCoordsToServer(userLonLat, destLonLat);
       }
-    },500); // Half-second delay to distinguish clicks and dblclicks
+    },400); // 0.4 second delay to distinguish clicks and dblclicks
   });
 
   google.maps.event.addListener(map, 'dblclick', function(e) {
