@@ -13,6 +13,7 @@ lm.App = function(config) {
 };
 
 lm.App.prototype.setupMap = function (argument) {
+  
   // Load initial content
   this.fetchAndRenderVehicles();
 
@@ -29,10 +30,11 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
       southWest = bounds.getSouthWest(),
       northEast = bounds.getNorthEast(),
       projection = this.map.projection,
-      self = this;
+      self = this,
+      url = 'http://webservices.nextbus.com/service/publicXMLFeed?command=vehicleLocations&a=sf-muni&t=';
 
   // Always pulls last 15m. To use self.lastTime with D3, will need to implement websockets.
-  d3.xhr('http://webservices.nextbus.com/service/publicXMLFeed?command=vehicleLocations&a=sf-muni&t='+'0', function(err,res){
+  d3.xhr(url+'0', function(err,res){
     if(err) {
       console.error('Error: ',err);
       return;
@@ -111,6 +113,7 @@ lm.App.prototype.getStopPredictions = function(stopObj){
   });
 };
 
+// Controls flow of item updates
 lm.App.prototype.adjustItemsOnMap = function(enableTransitions){
 
   if(this.userloc){
@@ -123,6 +126,7 @@ lm.App.prototype.adjustItemsOnMap = function(enableTransitions){
   this.addThings('stop',enableTransitions);
 };
 
+// Adds and updates SVG elements above map
 lm.App.prototype.addThings = function(type, enableTransitions){
 
   var self = this,

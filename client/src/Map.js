@@ -49,6 +49,7 @@ lm.Map = function(config) {
     }
   };
 
+  // Get user location
   var getGeo = function(highAccuracy){
     if(navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -88,6 +89,7 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
   var userMapLatLng = new google.maps.LatLng(userLonLat[1],userLonLat[0]);
   
   lm.app.set('userloc',[userPosition.coords]);
+  // Place user on map right now
   lm.app.adjustItemsOnMap(0);
   
   var location = new google.maps.LatLng(userPosition.coords.lat, userPosition.coords.lon);
