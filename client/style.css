@@ -123,7 +123,7 @@ html, body, #map-canvas {
 
 .bus {
   stroke: black;
-  stroke-width: 0px;
+  stroke-width: 1.5px;
   fill-opacity: 0;
   border-radius: 10px;
 }

@@ -24,6 +24,7 @@ lm.Map = function(config) {
 
     // Store a reference to the projection
     self.projection = self.overlay.getProjection();
+    self.midpoint = self.gMap.getCenter();
 
     self.busLayer = panes.append('div')
     .attr('class', 'toplayer');
@@ -42,6 +43,17 @@ lm.Map = function(config) {
 
     this.draw();
     getGeo(true, this);
+
+    // Rerender map items if total drag amount is a full screen different.
+    // DANGER! WILL ROBINSON: Currently this re-queries the Nextbus API
+    google.maps.event.addListener(map, 'dragend', function() { 
+      var newCenterXY = self.projection.fromLatLngToDivPixel(self.gMap.getCenter());
+      var oldCenterXY = self.projection.fromLatLngToDivPixel(self.midpoint);
+      if(Math.abs(newCenterXY.x-oldCenterXY.x)>window.innerWidth || 
+         Math.abs(newCenterXY.y-oldCenterXY.y)>window.innerHeight){
+        lm.app.fetchAndRenderVehicles();
+      }      
+    });    
 
     // Call the ready callback
     if (typeof config.ready === 'function'){
@@ -73,6 +85,7 @@ lm.Map = function(config) {
   google.maps.event.addListenerOnce(map, 'idle', function() {
     self.overlay.setMap(self.gMap);
   });
+
 };
 
 // Alias the getBounds function of Google Maps

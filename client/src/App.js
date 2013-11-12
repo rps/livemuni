@@ -26,6 +26,9 @@ lm.App.prototype.set = function(variable, value){
 };
 
 lm.App.prototype.fetchAndRenderVehicles = function() {
+  // Reset stored map center to reset map drag trigger
+  this.map.midpoint = this.map.gMap.getCenter();
+
   var bounds = this.map.getBounds(),
       southWest = bounds.getSouthWest(),
       northEast = bounds.getNorthEast(),
@@ -226,8 +229,8 @@ lm.App.prototype.addThings = function(type, enableTransitions){
     .attr('class',settings[type].itemClass);
   
   if(type === 'bus'){
-    circ.style('fill-opacity',0.9)
-    .style('stroke-width','1.5px')
+    circ.transition().duration(2000)
+    .style('fill-opacity',0.9)
     .style('fill',function(d){return self.map.allRouteColors[d.routeTag].color; });
 
     svg.append('text')
