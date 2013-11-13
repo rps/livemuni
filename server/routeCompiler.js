@@ -148,18 +148,25 @@ exports.listAllRoutes = function(cb, originalres){
 };
 
 // dual function to save user coord early when possible
-exports.findRoutesNear = findRoutesNear = function(coordinates, cb){
+exports.findRoutesNear = findRoutesNear = function(coordinates, direction, cb){
   var dbInfo = connect('routesdb','busroutes');
+
   // callback array of string stopnames within .4 miles. maxdistradians is .4 / 69
-  console.log('findroutesnear',coordinates);
-  dbInfo.busroutes.distinct('routename',{'stopsOutbound.lonlat': { $near: coordinates, $maxDistance: 0.00578745247 }},function(err,res){
+  console.log('findroutesnear',coordinates, direction);
+  if(direction === 'Inbound'){
+    dbInfo.busroutes.distinct('routename',{'stopsInbound.lonlat': { $near: coordinates, $maxDistance: 0.00578745247 }}, parseResults);
+  } else {
+    dbInfo.busroutes.distinct('routename',{'stopsOutbound.lonlat': { $near: coordinates, $maxDistance: 0.00578745247 }}, parseResults);
+  }
+
+  function parseResults(err, res) {
     if(err) throw err;
     var routesObj = {}; // could give this a length property = res.length, then use to determine which obj to iterate over in eligibleRoutes
     for(var i = 0; i<res.length; i++){
       routesObj[res[i]] = true;
     }
     cb(routesObj);
-  });
+  }
 };
 
 exports.eligibleRoutes = function(userCoord, destCoord, direction, res){
@@ -174,7 +181,7 @@ exports.eligibleRoutes = function(userCoord, destCoord, direction, res){
   };
   routeComparator.setUser = function(routesNearUser){
     this.routesNearUser = routesNearUser;
-    findRoutesNear(this.destCoord, this.compareRoutes);
+    findRoutesNear(this.destCoord, this.direction, this.compareRoutes);
   };
   routeComparator.compareRoutes = function(routesNearDest){
     console.log(Object.keys(this.routesNearUser).length, 'keylength');
@@ -186,7 +193,7 @@ exports.eligibleRoutes = function(userCoord, destCoord, direction, res){
   };
   routeComparator.setUser = routeComparator.setUser.bind(routeComparator);
   routeComparator.compareRoutes = routeComparator.compareRoutes.bind(routeComparator);
-  findRoutesNear(userCoord,routeComparator.setUser);
+  findRoutesNear(userCoord, direction, routeComparator.setUser);
 };
 
 var getClosestStops = function(userCoord, direction, routesArr, result){
