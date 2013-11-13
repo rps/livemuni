@@ -61,9 +61,15 @@ module.exports = function(grunt) {
       client: {
         files: ['client/src/*.js'],
         tasks: ['concat'],
-      },      
+      }, 
+      css: {
+        files: ['client/style.css'],
+        options: {
+          livereload: true
+        }
+      },           
       frontend: {
-        files: ['client/dist/*.js', 'client/index.html', 'client/style.css'],
+        files: ['client/dist/*.js', 'client/index.html'],
         options: {
           livereload: true
         }

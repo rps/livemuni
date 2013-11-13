@@ -221,7 +221,6 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       .style('fill','black');
   }
 
-  // TODO: fadein for buses
   var circ = svg.append('circle')
     .attr('r', 9)
     .attr('cx',10)

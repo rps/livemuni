@@ -4,6 +4,10 @@ var lm = {
       el: '#map-canvas',
       center: new google.maps.LatLng(37.783, -122.409), //getCenter for NONwrapped LatLon obj
       zoom: 15,
+      maxZoom: 18,
+      minZoom: 14, 
+      streetViewControl: false,
+      mapTypeControl: false,
       mapTypeId: google.maps.MapTypeId.ROADMAP,
       styles: [
         {featureType: 'poi.business',
