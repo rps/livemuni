@@ -81,6 +81,7 @@ lm.App.prototype.getStopPredictions = function(stopObj){
     this.lastRouteArray.push(route); // Filters out nonessential buses in fetchAndRenderVehnicles
     query+='&stops='+route+'|'+stopObj[route].user.stopTag+'&stops='+route+'|'+stopObj[route].dest.stopTag;
   }
+  console.log(query);
 
   d3.xhr(query, function(err, res){
     if(err){
@@ -95,7 +96,6 @@ lm.App.prototype.getStopPredictions = function(stopObj){
     // e.g. Outbound to Ocean Beach vs Outbound to Richmond
     doc.eachChild(function(child){
       counter--;
-      console.log(counter);
 
       //TODO: choose the soonest of the different childrens' times
       if(child.children.length > 0){
@@ -115,9 +115,9 @@ lm.App.prototype.getStopPredictions = function(stopObj){
           // Could send route requests individually here, but db connection might get overloaded
         }
       }
+      console.log('lastStopObjArray',self.lastStopObjArray);
 
       if(counter === 0){
-        console.log(self.lastStopObjArray);
         self.adjustItemsOnMap(0);
         setTimeout(function(){self.getStopPredictions(stopObj);}, 30000);
         map.routesNotRendered && map.getRouteObjFromServer(Object.keys(routesCovered));

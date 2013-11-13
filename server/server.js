@@ -53,6 +53,10 @@ app.post('/saveNewPath', function(req, res){
   routeCompiler.saveBrain(req.body, res);
 });
 
+app.post('/findStopsOnRoutes', function(req,res){
+  routes.findStopsOnRoutes(req.body, res);
+});
+
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });

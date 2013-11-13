@@ -147,6 +147,15 @@ exports.listAllRoutes = function(cb, originalres){
   });
 };
 
+exports.findStopsOnRoutes = function(request, response){
+  var direction = Object.keys(request)[0];
+  var dbInfo = connect('routesdb','busstops');
+  dbInfo.busstops.find({direction: direction, routename: {$in: request[direction]}},{_id:0}).toArray(function(err,res){
+    if(err) throw err;
+    response.end(JSON.stringify(res));
+  });
+};
+
 // dual function to save user coord early when possible
 exports.findRoutesNear = findRoutesNear = function(coordinates, direction, cb){
   var dbInfo = connect('routesdb','busstops');
