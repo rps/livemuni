@@ -79,7 +79,7 @@ lm.App.prototype.getStopPredictions = function(stopObj){
 
   for(var route in stopObj){
     this.lastRouteArray.push(route); // Filters out nonessential buses in fetchAndRenderVehnicles
-    query+='&stops='+route+'|'+stopObj[route].stopTag;
+    query+='&stops='+route+'|'+stopObj[route].user.stopTag+'&stops='+route+'|'+stopObj[route].dest.stopTag;
   }
 
   d3.xhr(query, function(err, res){
@@ -88,29 +88,39 @@ lm.App.prototype.getStopPredictions = function(stopObj){
     }
 
     var doc = new XmlDocument(res.response),
-        counter = doc.children.length;
-        storage = {};
+        counter = doc.children.length; // TODO: if 'titles' are distinguished, will need to count childrens' children
+        routesCovered = {};
 
+    // TODO: distinguish between different 'titles' per direction
+    // e.g. Outbound to Ocean Beach vs Outbound to Richmond
     doc.eachChild(function(child){
       counter--;
+      console.log(counter);
 
+      //TODO: choose the soonest of the different childrens' times
       if(child.children.length > 0){
+        var stop = child.attr.stopTag;
+        var name = child.attr.routeTag;
+        var userOrDest = stopObj[name].dest.stopTag === stop ? 'dest' : 'user';
         if(child.children[0].name !== 'message'){
-          var name = child.attr.routeTag,
-              lat = stopObj[name].lonlat[1], 
-              lon = stopObj[name].lonlat[0],
-              minutes = child.children[0].children[0].attr.minutes;
+          var minutes = child.children[0].children[0].attr.minutes,
+              lat = stopObj[name][userOrDest].lonlat[1], 
+              lon = stopObj[name][userOrDest].lonlat[0],
+              color = stopObj[name][userOrDest].color,
+              oppositeColor = stopObj[name][userOrDest].oppositeColor,
+              stopLongName = stopObj[name][userOrDest].stopName; // TODO: use or delete
 
-          storage[name] = true;
-          self.lastStopObjArray.push({ lat: lat, lon: lon, minutes: minutes, route: name });
+          self.lastStopObjArray.push({ lat: lat, lon: lon, minutes: minutes, route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
+          routesCovered[name] = true;
           // Could send route requests individually here, but db connection might get overloaded
         }
       }
 
       if(counter === 0){
+        console.log(self.lastStopObjArray);
         self.adjustItemsOnMap(0);
         setTimeout(function(){self.getStopPredictions(stopObj);}, 30000);
-        map.routesNotRendered && map.getRoutesFromServer(Object.keys(storage));
+        map.routesNotRendered && map.getRouteObjFromServer(Object.keys(routesCovered));
       }
     });
   });
@@ -196,7 +206,7 @@ lm.App.prototype.addThings = function(type, enableTransitions){
   
   } else if(type === 'stop'){
     svgBind = d3.select(settings[type].layer).selectAll('svg')
-      .data(settings[type].data, function(d){ return d.route; })
+      .data(settings[type].data, function(d){ return d.route+d.userOrDest; })
       .each(latLngToPx);
 
   } else if(type === 'user' || type === 'dest'){
@@ -212,11 +222,12 @@ lm.App.prototype.addThings = function(type, enableTransitions){
     .each(latLngToPx)
     .attr('class',settings[type].svgClass);
 
+    // TODO: align width with text elements
   if(type === 'stop'){
     svg.append('rect')
       .attr('x',10)
       .attr('y',5)
-      .attr('width',40)
+      .attr('width',46)
       .attr('height',10)
       .style('fill','black');
   }
@@ -239,29 +250,38 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       .style('fill',function(d){ return self.map.allRouteColors[d.routeTag].oppcolor; })
       .text(function(d){return d.routeTag;});
   } else if(type === 'stop') {
-    circ.style('fill',function(d){ return self.map.allRouteColors[d.route].color; });
+    circ.style('fill',function(d){ return d.color; });
   } else {
     circ.style('fill',settings[type].fill);
   }
 
   if(type === 'stop'){
     svg.append('text')
-      .attr('x',20)
+      .attr('x',23)
       .attr('y',10)
       .attr('dy', '.31em')
       .attr('fill','white')
       .attr('class','timetext');
 
+    // TODO: have dest stops display time until nearest USER bus reaches them
     var timeleft = d3.selectAll('.timetext')
-      .data(settings[type].data, function(d){ return d.route; });
+      .data(settings[type].data, function(d){ return d.route+d.userOrDest; });
       
-    timeleft.text(function(d){ return d.minutes+' min';});
+    timeleft.text(function(d){
+      if(d.userOrDest === 'user'){
+        return d.minutes+' min';
+      } else { 
+        return 'end';
+      }
+    });
 
     svg.append('text')
-      .attr('x',4)
+      .attr('x',3)
       .attr('y',10)
       .attr('dy', '.31em')
-      .style('fill', function(d){ return self.map.allRouteColors[d.route].oppcolor; })
+      .attr('textLength','15px') // TODO: fix centering
+      .attr('lengthAdjust','spacing') // TODO: fix centering
+      .style('fill', function(d){ return d.oppositeColor; })
       .text(function(d){ return d.route; });
   }
 };

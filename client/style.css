@@ -148,3 +148,11 @@ html, body, #map-canvas {
   fill-opacity: 0;
   border-radius: 10px;
 }
+
+.timetext {
+  z-index: 5;
+}
+
+rect {
+  z-index: 4;
+}

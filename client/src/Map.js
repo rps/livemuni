@@ -109,6 +109,7 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
   this.gMap.setCenter(location);
 
   // TODO : toggle w/ button click on menu
+  // TODO : resolve touches being counted as clicks
   google.maps.event.addListener(this.gMap, 'click', function(e) {
     clickedOnce = true;
 
@@ -151,7 +152,7 @@ lm.Map.prototype.sendCoordsToServer = function(userLonLat, destLonLat){
   xhr.send(JSON.stringify([userLonLat, destLonLat, lm.config.direction]));
 };
 
-lm.Map.prototype.getRoutesFromServer = function(routeArray){
+lm.Map.prototype.getRouteObjFromServer = function(routeArray){
   var data = {};
   data[lm.config.direction] = routeArray;
   var send = JSON.stringify(data);

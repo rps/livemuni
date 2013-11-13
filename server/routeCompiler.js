@@ -149,24 +149,20 @@ exports.listAllRoutes = function(cb, originalres){
 
 // dual function to save user coord early when possible
 exports.findRoutesNear = findRoutesNear = function(coordinates, direction, cb){
-  var dbInfo = connect('routesdb','busroutes');
+  var dbInfo = connect('routesdb','busstops');
 
-  // callback array of string stopnames within .4 miles. maxdistradians is .4 / 69
+  // callback array of string stopnames within .5 miles. maxdistradians is ~.5 / 69
   console.log('findroutesnear',coordinates, direction);
-  if(direction === 'Inbound'){
-    dbInfo.busroutes.distinct('routename',{'stopsInbound.lonlat': { $near: coordinates, $maxDistance: 0.00578745247 }}, parseResults);
-  } else {
-    dbInfo.busroutes.distinct('routename',{'stopsOutbound.lonlat': { $near: coordinates, $maxDistance: 0.00578745247 }}, parseResults);
-  }
-
-  function parseResults(err, res) {
+  dbInfo.busstops.find( {lonlat: {$near: coordinates, $maxDistance: 0.00723431558 }, direction: direction},{_id:0}).toArray(function(err,res){
     if(err) throw err;
     var routesObj = {}; // could give this a length property = res.length, then use to determine which obj to iterate over in eligibleRoutes
     for(var i = 0; i<res.length; i++){
-      routesObj[res[i]] = true;
+      if(!routesObj[res[i].routename]){
+        routesObj[res[i].routename] = res[i];
+      }
     }
     cb(routesObj);
-  }
+  });
 };
 
 exports.eligibleRoutes = function(userCoord, destCoord, direction, res){
@@ -176,7 +172,7 @@ exports.eligibleRoutes = function(userCoord, destCoord, direction, res){
     destCoord: destCoord,
     direction: direction,
     routesNearUser: {},
-    sharedRoutes: [],
+    sharedRoutes: {},
     res: res
   };
   routeComparator.setUser = function(routesNearUser){
@@ -184,29 +180,18 @@ exports.eligibleRoutes = function(userCoord, destCoord, direction, res){
     findRoutesNear(this.destCoord, this.direction, this.compareRoutes);
   };
   routeComparator.compareRoutes = function(routesNearDest){
-    console.log(Object.keys(this.routesNearUser).length, 'keylength');
-    console.log(this.routesNearUser,'\n\n\n\n', routesNearDest);
+    // We now have, for dest and userloc, a single location for each route
+    // Determine & save which routes pass near both user and destloc
     for(var key in routesNearDest){
-      this.routesNearUser[key] && this.sharedRoutes.push(key);
+      if(this.routesNearUser[key]){
+        this.sharedRoutes[key] = ({user:this.routesNearUser[key],dest:routesNearDest[key]});
+      }
     }
-    getClosestStops(this.userCoord,this.direction,this.sharedRoutes, this.res);
+    this.res.end(JSON.stringify(this.sharedRoutes));
   };
   routeComparator.setUser = routeComparator.setUser.bind(routeComparator);
   routeComparator.compareRoutes = routeComparator.compareRoutes.bind(routeComparator);
   findRoutesNear(userCoord, direction, routeComparator.setUser);
-};
-
-var getClosestStops = function(userCoord, direction, routesArr, result){
-  var dbInfo = connect('routesdb','busstops');
-  console.log('getclosest',userCoord, direction, routesArr);
-  dbInfo.busstops.find( {lonlat: {$near: userCoord }, direction: direction, routename: {$in: routesArr} }).toArray(function(err,res){
-    var closestStops = {};
-    for(var i = 0; i<res.length; i++){
-      closestStops[res[i].routename] = closestStops[res[i].routename] || {lonlat:res[i].lonlat, stopTag:res[i].stopTag}; // lonlat for rendering, stoptag and route for updating
-    }
-    console.log(closestStops, 'closeststops');
-    result.end(JSON.stringify(closestStops));
-  });
 };
 
 exports.saveBrain = function(data, response){
