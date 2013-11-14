@@ -8,7 +8,7 @@ var MongoClient = require('mongodb').MongoClient,
 
 var mongoClient = new MongoClient(new Server('localhost', 27017));
 mongoClient.open(function(err, mongoClient) {
-  if(err) throw err;
+  if(err) console.log("This is an error: ",err);
   console.log('opening mongodb connection');
   // getRoutesFromMuni();
   // createRoutesCollection();
@@ -151,56 +151,155 @@ exports.findStopsOnRoutes = function(request, response){
   var direction = Object.keys(request)[0];
   var dbInfo = connect('routesdb','busstops');
   dbInfo.busstops.find({direction: direction, routename: {$in: request[direction]}},{_id:0}).toArray(function(err,res){
-    if(err) throw err;
+    if(err) console.log("This is an error: ",err);
     response.end(JSON.stringify(res));
   });
 };
 
 // dual function to save user coord early when possible
-exports.findRoutesNear = findRoutesNear = function(coordinates, direction, cb){
+exports.findRoutesNear = findRoutesNear = function(coordinates, cb, num){ //DEL
   var dbInfo = connect('routesdb','busstops');
 
   // callback array of string stopnames within .5 miles. maxdistradians is ~.5 / 69
-  console.log('findroutesnear',coordinates, direction);
-  dbInfo.busstops.find( {lonlat: {$near: coordinates, $maxDistance: 0.00723431558 }, direction: direction},{_id:0}).toArray(function(err,res){
-    if(err) throw err;
+  // MODIFIED TO INCLUDE BOTH DIRECTIONS
+  console.log('findroutesnear',coordinates);
+  dbInfo.busstops.find( {lonlat: {$near: coordinates, $maxDistance: 0.00723431558 }},{_id:0}).toArray(function(err,res){ //DEL
+    if(err){
+      console.log('Findroutesnear ERROR: ',err);
+    }
     var routesObj = {}; // could give this a length property = res.length, then use to determine which obj to iterate over in eligibleRoutes
     for(var i = 0; i<res.length; i++){
-      if(!routesObj[res[i].routename]){
-        routesObj[res[i].routename] = res[i];
+      if(!routesObj[res[i].routename+':'+res[i].direction]){
+        routesObj[res[i].routename+':'+res[i].direction] = res[i];
       }
     }
+    // console.log('FIND RESULTS: ',Object.keys(routesObj));
     cb(routesObj);
   });
 };
 
-exports.eligibleRoutes = function(userCoord, destCoord, direction, res){
+var globalObj;
+
+// Verify that user comes before dest
+var validateRoutes = function(routedata, dbInfo){
+  console.log('Sending to MongoDB');
+  var userlonlat,
+      destlonlat;
+      routename = routedata.routename.slice(0,routedata.routename.indexOf(':'));
+      direction = routedata.routename.slice(routedata.routename.indexOf(':')+1);
+
+  dbInfo.busstops.find({direction: direction, routename: routename},{_id:0}).toArray(function(err,res){
+    if(err){
+      console.log('ValidateRoutes ERROR: ',err);
+    }
+    console.log('Response from MongoDB');
+    globalObj.validate(res);
+  });
+};
+
+globalObj = {
+  counter: -1, 
+  allRoutes: [],
+  currentuserlon: null,
+  currentuserlat: null,
+  currentdestlon: null,
+  currentdestlat: null,
+  trigger: function(){
+    console.log('Countdown: ', this.counter);
+    // console.log(this.allRoutes[this.counter]);
+    if(this.counter >= 0){
+      this.currentuserlon = this.allRoutes[this.counter].user.lonlat[0];
+      this.currentuserlat = this.allRoutes[this.counter].user.lonlat[1];
+      this.currentdestlon = this.allRoutes[this.counter].dest.lonlat[0];
+      this.currentdestlat = this.allRoutes[this.counter].dest.lonlat[1];
+      validateRoutes(this.allRoutes[this.counter], this.dbInfo);
+    } else {
+      var temp = {};
+      var dir;
+      var route;
+      for(var i = 0; i<this.allRoutes.length; i++){
+        // console.log(this.allRoutes[i]);
+        // TODO delete dir, unused
+        console.log(this.allRoutes[i].routename);
+        dir = this.allRoutes[i].routename.slice(this.allRoutes[i].routename.indexOf(':')+1);
+        route = this.allRoutes[i].routename.slice(0,this.allRoutes[i].routename.indexOf(':'));
+        temp[route] = {direction: dir, user:this.allRoutes[i].user,dest:this.allRoutes[i].dest};
+      }
+      this.allRoutes = [];
+      this.counter = -1;
+      this.currentuserlon= null;
+      this.currentuserlat= null;
+      this.currentdestlon= null;
+      this.currentdestlat= null;
+
+      console.log('Returning to client');
+      this.response.end(JSON.stringify(temp));
+    }
+  },
+  validate: function(lookupData){
+    var del = false;
+    // console.log('valid route ',this.allRoutes[this.counter]);
+    // console.log('some lookupdata',lookupData);
+    for(var i = 0; i<lookupData.length; i++){
+      // console.log(lookupData[i].lonlat[0], this.currentdestlon);
+      // console.log(lookupData[i].lonlat[1], this.currentdestlat);
+      if(lookupData[i].lonlat[0] === this.currentdestlon && lookupData[i].lonlat[1] === this.currentdestlat){
+        console.log('Deleting Route! ',this.allRoutes[this.counter].routename);
+        del = true;
+        break;
+      }  
+      if(lookupData[i].lonlat[0] === this.currentuserlon && lookupData[i].lonlat[1] === this.currentuserlat){
+        console.log('Saving Route! ',this.allRoutes[this.counter].routename);
+        break;
+      }
+    }
+    if(del){
+      this.allRoutes.splice(this.counter,1);
+    }
+    this.counter--;
+    this.trigger();
+
+  }
+}; // TODO: NO GLOBAL!!!
+globalObj.dbInfo = connect('routesdb','busstops');
+globalObj.validate = globalObj.validate.bind(globalObj);
+globalObj.trigger = globalObj.trigger.bind(globalObj);
+
+
+exports.eligibleRoutes = function(userCoord, destCoord, res){ // DEL
   console.log('eligibleroutes');
   var routeComparator = {
     userCoord: userCoord,
     destCoord: destCoord,
-    direction: direction,
+    direction: '', // DEL
     routesNearUser: {},
     sharedRoutes: {},
     res: res
   };
   routeComparator.setUser = function(routesNearUser){
     this.routesNearUser = routesNearUser;
-    findRoutesNear(this.destCoord, this.direction, this.compareRoutes);
+    // DEL
+    findRoutesNear(this.destCoord, this.compareRoutes);
   };
   routeComparator.compareRoutes = function(routesNearDest){
-    // We now have, for dest and userloc, a single location for each route
+
+    // We now have, for dest and userloc, a single location for each route-dir pair
     // Determine & save which routes pass near both user and destloc
     for(var key in routesNearDest){
       if(this.routesNearUser[key]){
-        this.sharedRoutes[key] = ({user:this.routesNearUser[key],dest:routesNearDest[key]});
+        globalObj.allRoutes.push({user:this.routesNearUser[key],dest:routesNearDest[key],routename: key});
+        globalObj.counter++;
       }
     }
-    this.res.end(JSON.stringify(this.sharedRoutes));
+    console.log('Total Number of Comparisons: ',globalObj.counter);
+    // console.log('totalobj: ',globalObj.allRoutes);
+    globalObj.response = this.res;
+    globalObj.trigger();
   };
   routeComparator.setUser = routeComparator.setUser.bind(routeComparator);
   routeComparator.compareRoutes = routeComparator.compareRoutes.bind(routeComparator);
-  findRoutesNear(userCoord, direction, routeComparator.setUser);
+  // DEL
+  findRoutesNear(userCoord, routeComparator.setUser);
 };
 
 exports.saveBrain = function(data, response){
@@ -208,7 +307,7 @@ exports.saveBrain = function(data, response){
   var mapobjects = routesdb.collection('mapobjects'); // TODO: use connect function
   mapobjects.insert({routename:data.routename, path:data.routeSegments, direction:data.direction}, function(err,res){
     if(err) {
-      throw err;
+      console.log("This is an error: ",err);
     } else {
       console.log('SAVED TO mapobjects');
       response.end('woot');
@@ -220,6 +319,9 @@ exports.pullRoutes = function(routesWanted, resp){
   var direction = Object.keys(routesWanted)[0];
   var dbInfo = connect('routesdb','mapobjects2');
   dbInfo.mapobjects2.find({routename: {$in: routesWanted[direction]}, direction: direction},{_id:0}).toArray(function(err, res){
+    if(err){
+      console.log("This is an error: ",err);
+    }
     resp.end(JSON.stringify(res));
   });
 };
@@ -275,7 +377,7 @@ var routeDecompiler = function(aRoute, globalMind){
   }
   for(var k = 0; k<decompiledRoute.length; k++){
     globalMind.busstops.insert(decompiledRoute[k], function(err, res){
-      if(err) throw err;
+      if(err) console.log("This is an error: ",err);
       globalMind.counter--;
       console.log(globalMind.counter);
       if(globalMind.counter === 0){

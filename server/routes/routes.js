@@ -29,7 +29,7 @@ exports.pathgen = function(req, res){
 
 exports.coordinates = function(req, res){
   // DEL
-  routeCompiler.eligibleRoutes(req[0], req[1], req[2], res);
+  routeCompiler.eligibleRoutes(req[0], req[1], res);
 };
 
 exports.pullBusRoutes = function(req, res){

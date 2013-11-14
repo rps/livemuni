@@ -51,6 +51,8 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
         self.lastTime = doc.children[i].attr.time;
       }
 
+// FIX: resolve getDirection globally.
+
       if(
       (!self.lastRouteArray.length || self.lastRouteArray.indexOf(doc.children[i].attr.routeTag) > -1) && // validate against eligible routes, if any listed
       (southWest.lat()-0.01 <= Number(doc.children[i].attr.lat) && Number(doc.children[i].attr.lat) <= northEast.lat()+0.01) && // Remove bus markers placed
@@ -70,6 +72,7 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
 };
 
 lm.App.prototype.getStopPredictions = function(stopObj){
+  
   var query = 'http://webservices.nextbus.com/service/publicXMLFeed?command=predictionsForMultiStops&a=sf-muni',
       map = this.map,
       self = this;

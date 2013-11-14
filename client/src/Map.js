@@ -143,6 +143,7 @@ lm.Map.prototype.sendCoordsToServer = function(userLonLat, destLonLat){
       console.log('Reply received from server');
       try {
         var parsedRes = JSON.parse(xhr.responseText);
+        console.log(parsedRes);
         lm.app.getStopPredictions(parsedRes);
       } catch(err) {
         console.error(err);
@@ -150,7 +151,7 @@ lm.Map.prototype.sendCoordsToServer = function(userLonLat, destLonLat){
     }
   };
   // DEL
-  xhr.send(JSON.stringify([userLonLat, destLonLat, lm.config.direction]));
+  xhr.send(JSON.stringify([userLonLat, destLonLat]));
 };
 
 lm.Map.prototype.getRouteObjFromServer = function(routeArray){
@@ -214,7 +215,7 @@ lm.Map.prototype.routify = function(err, res){
         coord = new google.maps.LatLng(stopData[i].lonlat[1],stopData[i].lonlat[0]);
         allRoutes[stopData[i].routename].stops.push(coord);
     } else {
-      console.log('break ',stopData[i].lonlat[1], endPairs[stopData[i].routename].dest.lat, stopData[i].lonlat[0], endPairs[stopData[i].routename].dest.lon);
+      // console.log('break ',stopData[i].lonlat[1], endPairs[stopData[i].routename].dest.lat, stopData[i].lonlat[0], endPairs[stopData[i].routename].dest.lon);
     }
     if(stopData[i].lonlat[0] === endPairs[stopData[i].routename].dest.lon &&
        stopData[i].lonlat[1] === endPairs[stopData[i].routename].dest.lat
