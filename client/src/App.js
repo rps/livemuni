@@ -43,6 +43,7 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
       return;
     }
     var busArray = [],
+        dir = '',
         doc = new XmlDocument(res.response); // TODO: move to server
 
     // 66% reduction in buses when filtering out LatLon
@@ -50,16 +51,23 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
       if(doc.children[i].name === 'lastTime'){
         self.lastTime = doc.children[i].attr.time;
       }
-
 // FIX: resolve getDirection globally.
-
+      if(doc.children[i].attr.dirTag){
+        dir = doc.children[i].attr.dirTag.indexOf('_OB') ? '_OB' : '_IB';
+        if(dir === 'Inbound'){
+          console.log('dirTag:',doc.children[i].attr.dirTag);
+        }
+      }
+      // console.log(dir);
+      // console.log('lm config direction',lm.config.direction);
+      // console.log(lm.hasDirection(doc.children[i].attr.routeTag, dir));
       if(
       (!self.lastRouteArray.length || self.lastRouteArray.indexOf(doc.children[i].attr.routeTag) > -1) && // validate against eligible routes, if any listed
       (southWest.lat()-0.01 <= Number(doc.children[i].attr.lat) && Number(doc.children[i].attr.lat) <= northEast.lat()+0.01) && // Remove bus markers placed
       (southWest.lng()-0.01 <= Number(doc.children[i].attr.lon) && Number(doc.children[i].attr.lon) <= northEast.lng()+0.01) && // outside the screen.
       (doc.children[i].attr.secsSinceReport && doc.children[i].attr.secsSinceReport < 180) &&                 // Remove 180sec old markers.
-      (doc.children[i].attr.dirTag && doc.children[i].attr.dirTag.indexOf(lm.getDirection()) > -1)          // Remove wrong direction bus.
-      ){
+      (doc.children[i].attr.dirTag && (lm.hasDirection(doc.children[i].attr.routeTag, dir) || Object.keys(lm.config.direction).length === 0))          // Remove wrong direction bus.
+      ){ //doc.children[i].attr.routeTag
         busArray.push(doc.children[i].attr);
       }
     }
@@ -129,8 +137,20 @@ lm.App.prototype.getStopPredictions = function(stopObj){
     
 
       if(counter === 0){
-        console.log('Routes and directions covered: ',routesCovered);
-        console.log('lastStopObjArray',self.lastStopObjArray);
+        lm.config.direction = {};
+        for(var dir in routesCovered){
+          for(var routenames in routesCovered[dir]){
+            lm.config.direction[routenames] = {};
+            if(dir === 'Outbound'){
+              lm.config.direction[routenames]._OB = true;
+            } else {
+              lm.config.direction[routenames]._IB = true;
+            }
+          }
+        }
+        console.log('lm config',lm.config.direction);
+        // console.log('Routes and directions covered: ',routesCovered);
+        // console.log('lastStopObjArray',self.lastStopObjArray);
         self.adjustItemsOnMap(0);
         setTimeout(function(){self.getStopPredictions(stopObj);}, 30000);
         map.routesNotRendered && map.getRouteObjFromServer(routesCovered);
@@ -205,6 +225,7 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       .data(settings[type].data, function(d){ return d.id; })
       .each(latLngToPx);
 
+      // TODO: Set timers on all buses so they will remove themselves.
     var exiting = svgBind.exit();
 
     exiting.selectAll('circle')

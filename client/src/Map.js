@@ -121,7 +121,6 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
         var destLonLat = [e.latLng.lng(), e.latLng.lat()];
         lm.app.set('destloc', [{lon: destLonLat[0],lat:destLonLat[1]}]);
         lm.app.adjustItemsOnMap(0);
-        lm.config.direction = (destLonLat[0] < userLonLat[0]) ? 'Outbound' : 'Inbound'; // rough prediction of inbound/outbound
         
         self.sendCoordsToServer(userLonLat, destLonLat);
       }
@@ -145,7 +144,11 @@ lm.Map.prototype.sendCoordsToServer = function(userLonLat, destLonLat){
       try {
         var parsedRes = JSON.parse(xhr.responseText);
         console.log('Routes nearby are: ',parsedRes);
-        lm.app.getStopPredictions(parsedRes);
+        if(Object.keys(parsedRes).length > 0){
+          lm.app.getStopPredictions(parsedRes);
+        } else {
+          // Trigger a popup saying no routes available.
+        }
       } catch(err) {
         console.error(err);
       }

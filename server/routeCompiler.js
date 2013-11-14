@@ -175,7 +175,7 @@ exports.findStopsOnRoutes = function(request, response){
       console.log('reqdircount',this.requestDirections[this.counter]);
       getRouteStopsFromDB(this.dbInfo, this.requestDirections[this.counter][this.lastDir], this.lastDir);
     } else {
-      console.log('tosendback',this.toSendBack);
+      // console.log('tosendback',this.toSendBack);
       var sendback = this.toSendBack;
       this.counter = 0;
       this.toSendBack = [];
@@ -203,25 +203,44 @@ exports.findStopsOnRoutes = function(request, response){
 };
 
 // dual function to save user coord early when possible
-exports.findRoutesNear = findRoutesNear = function(coordinates, cb, num){ //DEL
+exports.findRoutesNear = findRoutesNear = function(coordinates, cb, routenames){ //DEL
   var dbInfo = connect('routesdb','busstops');
 
   // callback array of string stopnames within .5 miles. maxdistradians is ~.5 / 69
   // MODIFIED TO INCLUDE BOTH DIRECTIONS
   console.log('findroutesnear',coordinates);
-  dbInfo.busstops.find( {lonlat: {$near: coordinates, $maxDistance: 0.00723431558 }},{_id:0}).toArray(function(err,res){ //DEL
-    if(err){
-      console.log('Findroutesnear ERROR: ',err);
-    }
-    var routesObj = {}; // could give this a length property = res.length, then use to determine which obj to iterate over in eligibleRoutes
-    for(var i = 0; i<res.length; i++){
-      if(!routesObj[res[i].routename+':'+res[i].direction]){
-        routesObj[res[i].routename+':'+res[i].direction] = res[i];
+  //TODO: IMPORTANT - convert to GeoJSON and use 2dsphere so that more than 100results can be returned
+  if(routenames){
+    dbInfo.busstops.find( {lonlat: {$near: coordinates, $maxDistance: 0.00723431558 }, routename: {$in: routenames}},{_id:0}).toArray(function(err,res){ //DEL
+      if(err){
+        console.log('Findroutesnear ERROR: ',err);
       }
-    }
-    // console.log('FIND RESULTS: ',Object.keys(routesObj));
-    cb(routesObj);
-  });
+      console.log('NUM OF RES: ',res.length);
+      var routesObj = {}; // could give this a length property = res.length, then use to determine which obj to iterate over in eligibleRoutes
+      for(var i = 0; i<res.length; i++){
+        if(!routesObj[res[i].routename+':'+res[i].direction]){
+          routesObj[res[i].routename+':'+res[i].direction] = res[i];
+        }
+      }
+      console.log('MATCH RESULTS: ',Object.keys(routesObj));
+      cb(routesObj);
+    });
+  } else {
+    dbInfo.busstops.find( {lonlat: {$near: coordinates, $maxDistance: 0.00579710144 }},{_id:0}).toArray(function(err,res){ //DEL
+      if(err){
+        console.log('Findroutesnear ERROR: ',err);
+      }
+      console.log('NUM OF RES: ',res.length);
+      var routesObj = {}; // could give this a length property = res.length, then use to determine which obj to iterate over in eligibleRoutes
+      for(var i = 0; i<res.length; i++){
+        if(!routesObj[res[i].routename+':'+res[i].direction]){
+          routesObj[res[i].routename+':'+res[i].direction] = res[i];
+        }
+      }
+      console.log('FIND RESULTS: ',Object.keys(routesObj));
+      cb(routesObj);
+    });
+  }
 };
 
 var globalObj;
@@ -287,9 +306,15 @@ globalObj = {
     // console.log('valid route ',this.allRoutes[this.counter]);
     // console.log('some lookupdata',lookupData);
     for(var i = 0; i<lookupData.length; i++){
-      // console.log(lookupData[i].lonlat[0], this.currentdestlon);
-      // console.log(lookupData[i].lonlat[1], this.currentdestlat);
-      if(lookupData[i].lonlat[0] === this.currentdestlon && lookupData[i].lonlat[1] === this.currentdestlat){
+      if(lookupData[i].routename === '5'){
+        console.log(Math.abs(lookupData[i].lonlat[0] - this.currentdestlon)+Math.abs(lookupData[i].lonlat[0] - this.currentdestlon));
+        console.log(Math.abs(lookupData[i].lonlat[0] - this.currentdestlon)+Math.abs(lookupData[i].lonlat[0] - this.currentdestlon) < 0.0009);
+        // console.log(lookupData[i].lonlat[0], this.currentdestlon);
+      
+      }
+      if((lookupData[i].lonlat[0] === this.currentdestlon && lookupData[i].lonlat[1] === this.currentdestlat) ||
+        (Math.abs(lookupData[i].lonlat[0] - this.currentdestlon)+Math.abs(lookupData[i].lonlat[0] - this.currentdestlon)) < 0.0009){ 
+        // TODO FIX - bandaid until all route dirTags are saved
         console.log('Deleting Route! ',this.allRoutes[this.counter].routename);
         del = true;
         break;
@@ -324,8 +349,12 @@ exports.eligibleRoutes = function(userCoord, destCoord, res){ // DEL
   };
   routeComparator.setUser = function(routesNearUser){
     this.routesNearUser = routesNearUser;
-    // DEL
-    findRoutesNear(this.destCoord, this.compareRoutes);
+    var keylist = Object.keys(routesNearUser);
+    var routenames = [];
+    for(var i = 0; i<keylist.length; i++){
+      routenames.push(keylist[i].slice(0,keylist[i].indexOf(':')));
+    }
+    findRoutesNear(this.destCoord, this.compareRoutes, routenames);
   };
   routeComparator.compareRoutes = function(routesNearDest){
 

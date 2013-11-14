@@ -17,14 +17,14 @@ var lm = {
       ]
     },
     offset: 10,
-    direction: 'Outbound'
+    direction: {}
   },
   init: function() {
     // Start app
     lm.app = new lm.App(lm.config);
   },
-  getDirection: function(){
-    return this.config.direction === 'Outbound' ? '_OB' : '_IB';
+  hasDirection: function(key, dir){
+    return this.config.direction[key] && this.config.direction[key][dir] !== undefined;
   },
   util: {}
 };
