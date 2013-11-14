@@ -147,13 +147,59 @@ exports.listAllRoutes = function(cb, originalres){
   });
 };
 
-exports.findStopsOnRoutes = function(request, response){
-  var direction = Object.keys(request)[0];
-  var dbInfo = connect('routesdb','busstops');
-  dbInfo.busstops.find({direction: direction, routename: {$in: request[direction]}},{_id:0}).toArray(function(err,res){
+var globalStopObj = {
+  requestDirections: []
+}; // TODO NO GLOBAL!!!
+
+var getRouteStopsFromDB = function(db, stopArray, direction){
+  console.log('stoparr: ',stopArray);
+  console.log('direction: ',direction);
+  db.busstops.find({direction: direction, routename: {$in: stopArray}},{_id:0}).toArray(function(err,res){
     if(err) console.log("This is an error: ",err);
-    response.end(JSON.stringify(res));
+    globalStopObj.save(res);
   });
+};
+
+// Doesn't send back directions. Is this important?
+exports.findStopsOnRoutes = function(request, response){
+  console.log('thereq',request);
+  globalStopObj.dbInfo = connect('routesdb','busstops');
+  globalStopObj.counter = 0;
+  globalStopObj.res = response;
+  globalStopObj.toSendBack = [];
+  globalStopObj.lastDir = '';
+  globalStopObj.trigger = function(){
+    if(this.counter > 0){
+      this.counter--;
+      this.lastDir = Object.keys(this.requestDirections[this.counter])[0];
+      console.log('reqdircount',this.requestDirections[this.counter]);
+      getRouteStopsFromDB(this.dbInfo, this.requestDirections[this.counter][this.lastDir], this.lastDir);
+    } else {
+      console.log('tosendback',this.toSendBack);
+      var sendback = this.toSendBack;
+      this.counter = 0;
+      this.toSendBack = [];
+      this.lastDir = '';
+      this.requestDirections = [];
+      this.res.end(JSON.stringify(sendback));
+    }
+  };
+  globalStopObj.save = function(results){
+    this.toSendBack = this.toSendBack.concat(results);
+    this.trigger();
+  };
+  var temp = {};
+  for(var dir in request){
+    temp[dir] = Object.keys(request[dir]);
+    console.log('temp',temp);
+    globalStopObj.requestDirections.push(temp);
+    temp = {};
+  }
+  globalStopObj.counter = globalStopObj.requestDirections.length;
+  globalStopObj.trigger.bind(globalStopObj);
+  globalStopObj.save.bind(globalStopObj);
+  globalStopObj.trigger(); 
+
 };
 
 // dual function to save user coord early when possible
@@ -232,7 +278,7 @@ globalObj = {
       this.currentdestlon= null;
       this.currentdestlat= null;
 
-      console.log('Returning to client');
+      console.log('Returning to client: ',Object.keys(temp));
       this.response.end(JSON.stringify(temp));
     }
   },
@@ -265,7 +311,7 @@ globalObj.dbInfo = connect('routesdb','busstops');
 globalObj.validate = globalObj.validate.bind(globalObj);
 globalObj.trigger = globalObj.trigger.bind(globalObj);
 
-
+// Return routes that pass by the user start and destination end points.
 exports.eligibleRoutes = function(userCoord, destCoord, res){ // DEL
   console.log('eligibleroutes');
   var routeComparator = {

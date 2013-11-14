@@ -133,6 +133,7 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
   });
 };
 
+// Determine 
 lm.Map.prototype.sendCoordsToServer = function(userLonLat, destLonLat){
   var xhr = new XMLHttpRequest();
 
@@ -143,7 +144,7 @@ lm.Map.prototype.sendCoordsToServer = function(userLonLat, destLonLat){
       console.log('Reply received from server');
       try {
         var parsedRes = JSON.parse(xhr.responseText);
-        console.log(parsedRes);
+        console.log('Routes nearby are: ',parsedRes);
         lm.app.getStopPredictions(parsedRes);
       } catch(err) {
         console.error(err);
@@ -154,10 +155,8 @@ lm.Map.prototype.sendCoordsToServer = function(userLonLat, destLonLat){
   xhr.send(JSON.stringify([userLonLat, destLonLat]));
 };
 
-lm.Map.prototype.getRouteObjFromServer = function(routeArray){
-  var data = {};
-  data[lm.config.direction] = routeArray;
-  var send = JSON.stringify(data);
+lm.Map.prototype.getRouteObjFromServer = function(routeObj){
+  var send = JSON.stringify(routeObj);
 
   d3.xhr('/findStopsOnRoutes')
     .header('Content-Type','application/json')
@@ -171,7 +170,6 @@ lm.Map.prototype.getRouteObjFromServer = function(routeArray){
 // Routify takes an array of map objects and renders them.
 lm.Map.prototype.routify = function(err, res){
   if(err) throw err;
-  console.log(lm.config.direction);
   var stopData,
       allRoutes,
       coord,
@@ -186,7 +184,8 @@ lm.Map.prototype.routify = function(err, res){
   }  
   
   try {
-    items = JSON.parse(res.responseText);
+    stopData = JSON.parse(res.responseText);
+    allRoutes = {};
     this.routesNotRendered = false;
   } catch(error) {
     console.error(error);
@@ -202,9 +201,6 @@ lm.Map.prototype.routify = function(err, res){
   };
 
 
-  stopData = JSON.parse(res.responseText);
-  allRoutes = {};
-  console.log(stopData);
 
   for(var i = 0; i<stopData.length; i++){
     if(!allRoutes[stopData[i].routename]){
@@ -225,7 +221,7 @@ lm.Map.prototype.routify = function(err, res){
   }
   
   for(var route in allRoutes){
-    console.log(allRoutes[route].stops);
+    console.log('route: ',route,allRoutes[route].stops);
     // for(var s = 0; s<allRoutes[route].stops.length; s++){
     //   console.log(allRoutes[route].stops[s].pb);
     // }

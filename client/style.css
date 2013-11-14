@@ -151,6 +151,7 @@ html, body, #map-canvas {
 
 .timetext {
   z-index: 5;
+  font-size: 1.2em;
 }
 
 rect {

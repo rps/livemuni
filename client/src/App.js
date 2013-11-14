@@ -72,7 +72,7 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
 };
 
 lm.App.prototype.getStopPredictions = function(stopObj){
-  
+  console.log('stopObj',stopObj);
   var query = 'http://webservices.nextbus.com/service/publicXMLFeed?command=predictionsForMultiStops&a=sf-muni',
       map = this.map,
       self = this;
@@ -92,38 +92,48 @@ lm.App.prototype.getStopPredictions = function(stopObj){
     }
 
     var doc = new XmlDocument(res.response),
-        counter = doc.children.length; // TODO: if 'titles' are distinguished, will need to count childrens' children
-        routesCovered = {};
+        counter = doc.children.length, // TODO: if 'titles' are distinguished, will need to count childrens' children
+        routesCovered = {},
+        stop,
+        name,
+        userOrDest;
+        console.log(counter+' Predictions returned');
 
     // TODO: distinguish between different 'titles' per direction
     // e.g. Outbound to Ocean Beach vs Outbound to Richmond
     doc.eachChild(function(child){
       counter--;
 
+      stop = child.attr.stopTag;
+      name = child.attr.routeTag;
+      userOrDest = stopObj[name].dest.stopTag === stop ? 'dest' : 'user';
+      lat = stopObj[name][userOrDest].lonlat[1];
+      lon = stopObj[name][userOrDest].lonlat[0];
+      color = stopObj[name][userOrDest].color;
+      oppositeColor = stopObj[name][userOrDest].oppositeColor;
+      stopLongName = stopObj[name][userOrDest].stopName; // TODO: use or delete
       //TODO: choose the soonest of the different childrens' times
       if(child.children.length > 0){
-        var stop = child.attr.stopTag;
-        var name = child.attr.routeTag;
-        var userOrDest = stopObj[name].dest.stopTag === stop ? 'dest' : 'user';
         if(child.children[0].name !== 'message'){
-          var minutes = child.children[0].children[0].attr.minutes,
-              lat = stopObj[name][userOrDest].lonlat[1], 
-              lon = stopObj[name][userOrDest].lonlat[0],
-              color = stopObj[name][userOrDest].color,
-              oppositeColor = stopObj[name][userOrDest].oppositeColor,
-              stopLongName = stopObj[name][userOrDest].stopName; // TODO: use or delete
-
+          var minutes = child.children[0].children[0].attr.minutes;
           self.lastStopObjArray.push({ lat: lat, lon: lon, minutes: minutes, route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
-          routesCovered[name] = true;
+          routesCovered[stopObj[name].direction] = routesCovered[stopObj[name].direction] || {};
+          routesCovered[stopObj[name].direction][name] = true;
           // Could send route requests individually here, but db connection might get overloaded
         }
+      } else if(child.name === 'predictions' && child.attr.dirTitleBecauseNoPredictions){
+        self.lastStopObjArray.push({ lat: lat, lon: lon, minutes: '?', route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
+        routesCovered[stopObj[name].direction] = routesCovered[stopObj[name].direction] || {};
+        routesCovered[stopObj[name].direction][name] = true;
       }
-      console.log('lastStopObjArray',self.lastStopObjArray);
+    
 
       if(counter === 0){
+        console.log('Routes and directions covered: ',routesCovered);
+        console.log('lastStopObjArray',self.lastStopObjArray);
         self.adjustItemsOnMap(0);
         setTimeout(function(){self.getStopPredictions(stopObj);}, 30000);
-        map.routesNotRendered && map.getRouteObjFromServer(Object.keys(routesCovered));
+        map.routesNotRendered && map.getRouteObjFromServer(routesCovered);
       }
     });
   });
