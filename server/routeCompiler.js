@@ -404,7 +404,12 @@ var createStopsCollection = function(){
         routeFlattener(this.allRoutes[this.routeTicker],this);
         this.routeTicker++;
       } else {
-        this.routesdb.close();
+        var self = this;
+        var coll = this.routesdb;
+        this.busstops2.ensureIndex({'lonlat':'2dsphere'}, function(err, res){
+          if(err) throw err;
+          self.routesdb.close();
+        });
       }
     }
   };
@@ -451,4 +456,3 @@ var routeFlattener = function(aRoute, globalMind){
   }
 };
 
-// db.busstops2.ensureIndex({'lonlat':'2dsphere'})
