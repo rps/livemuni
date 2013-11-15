@@ -7,6 +7,10 @@ var lm = {
       maxZoom: 18,
       minZoom: 14, 
       streetViewControl: false,
+      zoomControlOptions: {
+        // style: google.maps.ZoomControlStyle.LARGE,
+        // position: google.maps.ControlPosition.LEFT_CENTER
+      },
       mapTypeControl: false,
       mapTypeId: google.maps.MapTypeId.ROADMAP,
       styles: [

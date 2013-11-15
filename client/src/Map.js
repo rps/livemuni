@@ -154,7 +154,6 @@ lm.Map.prototype.sendCoordsToServer = function(userLonLat, destLonLat){
       }
     }
   };
-  // DEL
   xhr.send(JSON.stringify([userLonLat, destLonLat]));
 };
 
@@ -224,7 +223,7 @@ lm.Map.prototype.routify = function(err, res){
   }
   
   for(var route in allRoutes){
-    console.log('route: ',route,allRoutes[route].stops);
+    // console.log('route: ',route,allRoutes[route].stops);
     // for(var s = 0; s<allRoutes[route].stops.length; s++){
     //   console.log(allRoutes[route].stops[s].pb);
     // }

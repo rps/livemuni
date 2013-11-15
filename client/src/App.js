@@ -80,7 +80,7 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
 };
 
 lm.App.prototype.getStopPredictions = function(stopObj){
-  console.log('stopObj',stopObj);
+  // console.log('stopObj',stopObj);
   var query = 'http://webservices.nextbus.com/service/publicXMLFeed?command=predictionsForMultiStops&a=sf-muni',
       map = this.map,
       self = this;
@@ -148,7 +148,7 @@ lm.App.prototype.getStopPredictions = function(stopObj){
             }
           }
         }
-        console.log('lm config',lm.config.direction);
+        // console.log('lm config',lm.config.direction);
         // console.log('Routes and directions covered: ',routesCovered);
         // console.log('lastStopObjArray',self.lastStopObjArray);
         self.adjustItemsOnMap(0);
@@ -289,6 +289,8 @@ lm.App.prototype.addThings = function(type, enableTransitions){
     circ.style('fill',settings[type].fill);
   }
 
+// rect.append
+// also try using .each(d){ this.node() } and offsetwidth
   if(type === 'stop'){
     svg.append('text')
       .attr('x',23)

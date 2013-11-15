@@ -28,7 +28,6 @@ exports.pathgen = function(req, res){
 };
 
 exports.coordinates = function(req, res){
-  // DEL
   routeCompiler.eligibleRoutes(req[0], req[1], res);
 };
 
