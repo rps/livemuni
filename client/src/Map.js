@@ -132,7 +132,7 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
   });
 };
 
-// Determine 
+// Determine routes that pass by both user and destination
 lm.Map.prototype.sendCoordsToServer = function(userLonLat, destLonLat){
   var xhr = new XMLHttpRequest();
 

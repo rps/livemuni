@@ -27,8 +27,8 @@ var lm = {
     // Start app
     lm.app = new lm.App(lm.config);
   },
-  hasDirection: function(key, dir){
-    return this.config.direction[key] && this.config.direction[key][dir] !== undefined;
+  hasDirection: function(key){
+    return this.config.direction[key];
   },
   util: {}
 };
