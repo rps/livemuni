@@ -53,7 +53,7 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
       }
 // FIX: resolve getDirection globally.
       if(
-      (!self.lastRouteArray.length || self.lastRouteArray.indexOf(doc.children[i].attr.routeTag) > -1) && // validate against eligible routes, if any listed
+      (!self.lastRouteArray.length || self.lastRouteArray.indexOf(doc.children[i].attr.routeTag+':'+doc.children[i].attr.dirTag) > -1) && // validate against eligible routes, if any listed
       (southWest.lat()-0.01 <= Number(doc.children[i].attr.lat) && Number(doc.children[i].attr.lat) <= northEast.lat()+0.01) && // Remove bus markers placed
       (southWest.lng()-0.01 <= Number(doc.children[i].attr.lon) && Number(doc.children[i].attr.lon) <= northEast.lng()+0.01) && // outside the screen.
       (doc.children[i].attr.secsSinceReport && doc.children[i].attr.secsSinceReport < 180) &&                 // Remove 180sec old markers.
@@ -166,6 +166,7 @@ lm.App.prototype.getStopPredictions = function(stopObj){
         console.log('lm config',lm.config.direction);
         console.log('Routes and directions covered: ',routesCovered);
         console.log('lastStopObjArray',self.lastStopObjArray);
+        console.log('stopobj for refresh',stopObj);
         self.adjustItemsOnMap(0);
         setTimeout(function(){self.getStopPredictions(stopObj);}, 30000);
         map.routesNotRendered && map.getRouteObjFromServer(routesCovered);
