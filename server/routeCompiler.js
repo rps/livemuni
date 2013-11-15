@@ -66,6 +66,7 @@ var makeRouteObj = function(tag, title, color, oppositeColor){
   };
 };
 
+// Handles a single <route> containing <stop>s and <direction>s lists of stops
 var parseRoutes = function(dbInfo, child, index, array){
   if(child.name === 'route'){
     dbInfo.counter++;
@@ -80,6 +81,8 @@ var parseRoutes = function(dbInfo, child, index, array){
   }
 };
 
+// 8X stops are being stored in the wrong order!!!!
+
 var parseRouteStops = function(dbInfo, routeObj, grandChild, index, array){
   if(grandChild.name === 'stop' && grandChild.attr.lon && grandChild.attr.lat){ // some lon/lat are undefined from nextmuni
     routeObj.stops.push({
@@ -88,13 +91,14 @@ var parseRouteStops = function(dbInfo, routeObj, grandChild, index, array){
       lonlat: [Number(grandChild.attr.lon), Number(grandChild.attr.lat)] // lonlat order required for mongo 2d index
     });
   } else if(grandChild.name === 'direction'){
-    routeObj[grandChild.attr.tag] = [];
+    routeObj[grandChild.attr.tag] = []; // Sets the dirTag as a key on the routeObj
     routeObj.directionPairs[grandChild.attr.tag] = grandChild.attr.title; // Save direction tag and readable title
     var collectStopTagsNow = collectStopTags.bind(undefined, routeObj, grandChild.attr.tag); 
     grandChild.eachChild(collectStopTagsNow);
   }
 };
 
+// Working correctly
 var collectStopTags = function(routeObj, direction, stop, index){
   routeObj[direction].push(stop.attr.tag);
 };
@@ -108,11 +112,15 @@ var mongoReformat = function(routeObj){
   mongoRouteObj.oppositeColor = routeObj.oppositeColor;
   mongoRouteObj.directionPairs = routeObj.directionPairs;
   for(var dirTag in routeObj.directionPairs){
+    console.log(dirTag);
     mongoRouteObj[dirTag] = [];
     for(var i = 0; i<routeObj[dirTag].length; i++){
       for(var j = 0; j<routeObj.stops.length; j++){
         if(routeObj.stops[j].stopTag === routeObj[dirTag][i]){
           mongoRouteObj[dirTag].push(routeObj.stops[j]);
+          // if(dirTag === '8X'){
+          //   console.log(mongoRoute);
+          // }
         }
       }
     }
@@ -141,65 +149,14 @@ exports.listAllRoutes = function(cb, originalres){
   });
 };
 
-var globalStopObj = {
-  requestDirections: []
-}; // TODO NO GLOBAL!!!
-
-var getRouteStopsFromDB = function(db, routeAndDirTagArray, direction){
-  console.log('stoparr: ',stopArray);
-  console.log('direction: ',direction);
-  db.busstops2.find({routeAndDirTag: {$in: routeAndDirTagArray}},{_id:0}).toArray(function(err,res){
-    if(err) console.log("This is an error: ",err);
-    globalStopObj.save(res);
-  });
-};
-
-// Doesn't send back directions. Is this important?
-
-// Can now query for route+dirTag
 exports.findStopsOnRoutes = function(request, response){
-  console.log('thereq',request);
-  globalStopObj.dbInfo = connect('routesdb','busstops2');
-  globalStopObj.counter = 0;
-  globalStopObj.res = response;
-  globalStopObj.toSendBack = [];
-  globalStopObj.lastDir = '';
+  
+  var db = connect('routesdb','busstops2');
 
-  // No need to use the counter anymore, since we query both IB and OB at once
-  globalStopObj.trigger = function(){
-    if(this.counter > 0){
-      this.counter--;
-      this.lastDir = Object.keys(this.requestDirections[this.counter])[0];
-      console.log('reqdircount',this.requestDirections[this.counter]);
-
-      // TODO second arg should be routeAndDirTag
-      getRouteStopsFromDB(this.dbInfo, this.requestDirections[this.counter][this.lastDir], this.lastDir);
-    } else {
-      // console.log('tosendback',this.toSendBack);
-      var sendback = this.toSendBack;
-      this.counter = 0;
-      this.toSendBack = [];
-      this.lastDir = '';
-      this.requestDirections = [];
-      this.res.end(JSON.stringify(sendback));
-    }
-  };
-  globalStopObj.save = function(results){
-    this.toSendBack = this.toSendBack.concat(results);
-    this.trigger();
-  };
-  var temp = {};
-  for(var dir in request){
-    temp[dir] = Object.keys(request[dir]);
-    console.log('temp',temp);
-    globalStopObj.requestDirections.push(temp);
-    temp = {};
-  }
-  globalStopObj.counter = globalStopObj.requestDirections.length;
-  globalStopObj.trigger.bind(globalStopObj);
-  globalStopObj.save.bind(globalStopObj);
-  globalStopObj.trigger(); 
-
+  db.busstops2.find({routeAndDirTag: {$in: Object.keys(request)}},{_id:0}).toArray(function(err,res){
+    if(err) console.log("This is an error: ",err);
+    response.end(JSON.stringify(res));
+  });
 };
 
 // dual function to save user coord early when possible
@@ -219,7 +176,7 @@ exports.findRoutesNear = findRoutesNear = function(coordinates, cb, routeArray){
     }, 
     spherical: true,
     num: num,
-    maxDistance: 400,
+    maxDistance: 800, // meters
     query: query
   },
   function(err, res){
@@ -227,6 +184,7 @@ exports.findRoutesNear = findRoutesNear = function(coordinates, cb, routeArray){
     var routesObj = {};
     var resultsArr = res.results;
       for(var i = 0; i<resultsArr.length; i++){
+        console.log(resultsArr[i].obj.routeAndDirTag);
         // Since geo results are sorted by proximity, only save the closest route+dirTag object
         if(!routesObj[resultsArr[i].obj.routename+':'+resultsArr[i].obj.dirTag]){
           routesObj[resultsArr[i].obj.routename+':'+resultsArr[i].obj.dirTag] = resultsArr[i].obj;
@@ -402,7 +360,7 @@ var createStopsCollection = function(){
     routeTicker: 0,
     allRoutes: [],
     counter: 0,
-    trigger: function(){
+    triggerNewRoute: function(){
       if(this.routeTicker < this.allRoutes.length){
         routeFlattener(this.allRoutes[this.routeTicker],this);
         this.routeTicker++;
@@ -418,10 +376,33 @@ var createStopsCollection = function(){
   globalMind.routesdb = mongoClient.db('routesdb'); // TODO: use connect function
   globalMind.busroutes2 = globalMind.routesdb.collection('busroutes2'); // TODO: use connect function
   globalMind.busstops2 = globalMind.routesdb.collection('busstops2');// TODO: use connect function
+  globalMind.syncronousInsert = function(){
+    var self = this;
+    if(this.tempCountTicker < this.tempCount){
+      globalMind.busstops2.insert(this.decompiled[this.tempCountTicker], function(err, res){
+        if(err) console.log("This is an error: ",err);
+        self.counter--;
+        if(self.counter === 0){ // triggers the 'else' in triggerNewRoute
+          self.triggerNewRoute();
+        } else {
+          self.tempCountTicker++;
+          console.log('tempcount: ', self.tempCountTicker);
+          self.syncronousInsert();
+        }
+      });
+    } else {
+      this.tempCount = 0;
+      this.decompiled = [];
+      this.tempCountTicker = 0;
+      this.triggerNewRoute();
+    }
+    
+  };
+  globalMind.syncronousInsert.bind(globalMind);
   globalMind.busroutes2.find({}).toArray(function(err,res){
     if(!err){
       globalMind.allRoutes = res;
-      globalMind.trigger();
+      globalMind.triggerNewRoute();
     }
   });
 };
@@ -430,6 +411,7 @@ var createStopsCollection = function(){
 var routeFlattener = function(aRoute, globalMind){
   var decompiledRoute = [];
   var tempStop = {};
+  // if(aRoute.routename === '8X') console.log('aRoute: ',aRoute);
   for(var dirTag in aRoute.directionPairs){
     for(var i = 0; i<aRoute[dirTag].length; i++){
       tempStop = aRoute[dirTag][i];
@@ -445,15 +427,10 @@ var routeFlattener = function(aRoute, globalMind){
       tempStop = {};
     }
   }
-  for(var j = 0; j<decompiledRoute.length; j++){
-    globalMind.busstops2.insert(decompiledRoute[j], function(err, res){
-      if(err) console.log("This is an error: ",err);
-      globalMind.counter--;
-      console.log(globalMind.counter);
-      if(globalMind.counter === 0){
-        globalMind.trigger();
-      }
-    });
-  }
+  // if(aRoute.routename === '8X') console.log('decomp: ',decompiledRoute);
+  globalMind.tempCount = decompiledRoute.length;
+  globalMind.decompiled = decompiledRoute;
+  globalMind.tempCountTicker = 0;
+  globalMind.syncronousInsert();
 };
 

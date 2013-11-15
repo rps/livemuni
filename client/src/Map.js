@@ -172,22 +172,21 @@ lm.Map.prototype.getRouteObjFromServer = function(routeObj){
 // Routify takes an array of map objects and renders them.
 lm.Map.prototype.routify = function(err, res){
   if(err) throw err;
-  var stopData,
-      allRoutes,
+  var stopArr, // all stops with the routeAndDirTag
       coord,
       stopRead,
+      allRoutes = {},
       endPairs = {}, // obj of route objs containing dest/user lat and lon
       self = this,
-      endpointArray = lm.app.lastStopObjArray; // TODO: !IMPORTANT - verify that this only stores for routes with BOTH user and dest.
+      endpointArray = lm.app.lastStopObjArray; // Only routeStops we have predictions for
 
   for(var j = 0; j<endpointArray.length; j++){
-    endPairs[endpointArray[j].route] = endPairs[endpointArray[j].route] || {};
-    endPairs[endpointArray[j].route][endpointArray[j].userOrDest] = endpointArray[j];
+    endPairs[endpointArray[j].routeAndDirTag] = endPairs[endpointArray[j].routeAndDirTag] || {};
+    endPairs[endpointArray[j].routeAndDirTag][endpointArray[j].userOrDest] = endpointArray[j];
   }  
   
   try {
-    stopData = JSON.parse(res.responseText);
-    allRoutes = {};
+    stopArr = JSON.parse(res.responseText);
     this.routesNotRendered = false;
   } catch(error) {
     console.error(error);
@@ -204,30 +203,30 @@ lm.Map.prototype.routify = function(err, res){
 
 
 
-  for(var i = 0; i<stopData.length; i++){
-    if(!allRoutes[stopData[i].routename]){
+  for(var i = 0; i<stopArr.length; i++){
+    if(!allRoutes[stopArr[i].routeAndDirTag]){
       stopRead = false;
-      allRoutes[stopData[i].routename] = {stops:[],color:stopData[i].color};
+      allRoutes[stopArr[i].routeAndDirTag] = {stops:[],color:stopArr[i].color};
     }
     if(!stopRead){
-        coord = new google.maps.LatLng(stopData[i].lonlat[1],stopData[i].lonlat[0]);
-        allRoutes[stopData[i].routename].stops.push(coord);
+        coord = new google.maps.LatLng(stopArr[i].lonlat[1],stopArr[i].lonlat[0]);
+        allRoutes[stopArr[i].routeAndDirTag].stops.push(coord);
     } else {
-      // console.log('break ',stopData[i].lonlat[1], endPairs[stopData[i].routename].dest.lat, stopData[i].lonlat[0], endPairs[stopData[i].routename].dest.lon);
+      // console.log('break ',stopArr[i].lonlat[1], endPairs[stopArr[i].routeAndDirTag].dest.lat, stopArr[i].lonlat[0], endPairs[stopArr[i].routeAndDirTag].dest.lon);
     }
-    if(stopData[i].lonlat[0] === endPairs[stopData[i].routename].dest.lon &&
-       stopData[i].lonlat[1] === endPairs[stopData[i].routename].dest.lat
+    if(stopArr[i].lonlat[0] === endPairs[stopArr[i].routeAndDirTag].dest.lon &&
+       stopArr[i].lonlat[1] === endPairs[stopArr[i].routeAndDirTag].dest.lat
       ){
-      stopRead = true;
+      stopRead = true; // Less than ideal
     }
   }
   
-  for(var route in allRoutes){
+  for(var routeAndDirTag in allRoutes){
     // console.log('route: ',route,allRoutes[route].stops);
     // for(var s = 0; s<allRoutes[route].stops.length; s++){
     //   console.log(allRoutes[route].stops[s].pb);
     // }
-    createPolyline(allRoutes[route].stops, allRoutes[route].color);
+    createPolyline(allRoutes[routeAndDirTag].stops, allRoutes[routeAndDirTag].color);
   }
 
 //   var coord;

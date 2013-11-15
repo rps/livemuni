@@ -119,15 +119,18 @@ lm.App.prototype.getStopPredictions = function(stopObj){
         if(child.children[0].name !== 'message'){
           var minutes = child.children[0].children[0].attr.minutes; // Child.children.children is the soonest <prediction minutes dirTag>
           var dirTag = child.children[0].children[0].attr.dirTag;
-          userOrDest = stopObj[name+':'+dirTag].dest.stopTag === stop ? 'dest' : 'user';
-          lat = stopObj[name+':'+dirTag][userOrDest].lonlat[1];
-          lon = stopObj[name+':'+dirTag][userOrDest].lonlat[0];
-          color = stopObj[name+':'+dirTag][userOrDest].color;
-          oppositeColor = stopObj[name+':'+dirTag][userOrDest].oppositeColor;
-          stopLongName = stopObj[name+':'+dirTag][userOrDest].stopName; // TODO: use or delete
-          // self.lastStopObjArray.push({ lat: lat, lon: lon, minutes: minutes, route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
-          routesCovered[name+':'+dirTag] = routesCovered[name+':'+dirTag] || [];
-          routesCovered[name+':'+dirTag].push({ dirTitle: directionTitle, lat: lat, lon: lon, minutes: minutes, route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
+          // Protection against dirTags we do not have
+          if(stopObj[name+':'+dirTag]){
+            userOrDest = stopObj[name+':'+dirTag].dest.stopTag === stop ? 'dest' : 'user';
+            lat = stopObj[name+':'+dirTag][userOrDest].lonlat[1];
+            lon = stopObj[name+':'+dirTag][userOrDest].lonlat[0];
+            color = stopObj[name+':'+dirTag][userOrDest].color;
+            oppositeColor = stopObj[name+':'+dirTag][userOrDest].oppositeColor;
+            stopLongName = stopObj[name+':'+dirTag][userOrDest].stopName; // TODO: use or delete
+            // self.lastStopObjArray.push({ lat: lat, lon: lon, minutes: minutes, route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
+            routesCovered[name+':'+dirTag] = routesCovered[name+':'+dirTag] || [];
+            routesCovered[name+':'+dirTag].push({ dirTitle: directionTitle, lat: lat, lon: lon, minutes: minutes, route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
+          }
         }
       } else if(child.name === 'predictions' && child.attr.dirTitleBecauseNoPredictions){
         // self.lastStopObjArray.push({ lat: lat, lon: lon, minutes: '?', route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
@@ -158,9 +161,17 @@ lm.App.prototype.getStopPredictions = function(stopObj){
         lm.config.direction = {};
         for(var routeAndDirTag in routesCovered){
           if(routesCovered[routeAndDirTag].length === 2){
-            self.lastStopObjArray.push(routesCovered[routeAndDirTag][0]);
-            self.lastStopObjArray.push(routesCovered[routeAndDirTag][1]);
+            console.log(routesCovered[routeAndDirTag]);
+            console.log(routesCovered[routeAndDirTag].length);
+            var temp = routesCovered[routeAndDirTag][0];
+            temp.routeAndDirTag = routeAndDirTag;
+            self.lastStopObjArray.push(temp);
+            temp = routesCovered[routeAndDirTag][1];
+            temp.routeAndDirTag = routeAndDirTag;
+            self.lastStopObjArray.push(temp);
             lm.config.direction[routeAndDirTag] = true;  
+          } else {
+            delete routesCovered[routeAndDirTag];
           }
         }
         console.log('lm config',lm.config.direction);
@@ -321,9 +332,19 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       
     timeleft.text(function(d){
       if(d.userOrDest === 'user'){
+        if(d.minutes === '?'){
+          return '???';
+        } else {
         return d.minutes+' min';
+        }
       } else { 
         return 'end';
+      }
+    });
+
+    timeleft.style('fill',function(d){
+      if(d.minutes === '?'){
+        return 'red';
       }
     });
 
