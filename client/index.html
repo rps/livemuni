@@ -10,8 +10,7 @@
     <script src='lib/xmldoc.js'></script>
     <script src='livemuni.js'></script>
     <script>
-      // TODO: use DOMContentLoaded or addEventListener
-      window.onload = lm.init;
+      window.addEventListener("DOMContentLoaded", lm.init, false);
     </script>
   </head>
   <body>

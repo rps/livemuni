@@ -2,15 +2,11 @@ var lm = {
   config: {
     map: {
       el: '#map-canvas',
-      center: new google.maps.LatLng(37.783, -122.409), //getCenter for NONwrapped LatLon obj
+      center: new google.maps.LatLng(37.783, -122.409),
       zoom: 15,
       maxZoom: 18,
       minZoom: 14, 
       streetViewControl: false,
-      zoomControlOptions: {
-        // style: google.maps.ZoomControlStyle.LARGE,
-        // position: google.maps.ControlPosition.LEFT_CENTER
-      },
       mapTypeControl: false,
       mapTypeId: google.maps.MapTypeId.ROADMAP,
       styles: [

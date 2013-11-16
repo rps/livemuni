@@ -1,4 +1,4 @@
-var common = require('common.js'),
+var common = require('./common.js'),
     mongoClient = new common.MongoClient(new common.Server('localhost', 27017));
 
 mongoClient.open(function(err, mongoClient) {
@@ -78,12 +78,10 @@ sg.synchronousInsert = function(){
     this.db.busstops3.insert(this.syncMgmt.decompiledArr[this.syncMgmt.tempCountTicker], function(err, res){
       if(err) console.error("Error: ",err);
       self.routeMgmt.counter--;
-      console.log('counter: ',self.routeMgmt.counter);
       if(self.routeMgmt.counter === 0){ // triggers the 'else' in triggerNewRoute
         self.triggerNewRoute();
       } else {
         self.syncMgmt.tempCountTicker++;
-        console.log('tempcount: ', self.syncMgmt.tempCountTicker);
         self.synchronousInsert();
       }
     });

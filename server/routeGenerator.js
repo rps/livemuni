@@ -1,9 +1,9 @@
-var common = require('common.js'),
+var common = require('./common.js'),
+    stopGenerator = require('./stopGenerator.js'),
     mongoClient = new common.MongoClient(new common.Server('localhost', 27017));
 
 mongoClient.open(function(err, mongoClient) {
   if (err) console.error("Error: ", err);
-  // rg.getRoutesFromMuni();
 });
 
 var rg = {
@@ -52,7 +52,7 @@ var rg = {
     this.db.busroutes3.insert(routeObj, function(err, result){
       self.counter--;
       if(self.counter === 0){
-        self.db.routesdb.close(); // TODO: call createStopsCollection instead
+        self.db.routesdb.close();
       }
     });
   }

@@ -1,4 +1,4 @@
-var common = require('common.js')
+var common = require('./common.js'),
     mongoClient = new common.MongoClient(new common.Server('localhost', 27017));
 
 mongoClient.open(function(err, mongoClient) {
@@ -60,7 +60,6 @@ rc.compareRoutes = function(routesNearDest){
       this.comparator.counter++;
     }
   }
-  console.log('Total Number of Comparisons: ',this.comparator.counter);
   this.comparator.db = this.db; 
   this.comparator.generateStopLists();
 };
@@ -68,7 +67,6 @@ rc.compareRoutes = function(routesNearDest){
 
 rc.comparator.pullRouteStops = function(){
   var self = this;
-  console.log('Sending to MongoDB');
   var userlonlat,
       destlonlat,
       routeData = this.allRoutes[this.counter],
@@ -84,7 +82,6 @@ rc.comparator.pullRouteStops = function(){
 };
 
 rc.comparator.generateStopLists = function(){
-  console.log('Countdown: ', this.counter);
   if(this.counter >= 0){
     this.currentuserlon = this.allRoutes[this.counter].user.lonlat[0];
     this.currentuserlat = this.allRoutes[this.counter].user.lonlat[1];
@@ -105,7 +102,6 @@ rc.comparator.generateStopLists = function(){
     this.currentdestlon = null;
     this.currentdestlat = null;
 
-    console.log('Returning to client: ',Object.keys(temp));
     this.response.end(JSON.stringify(temp));
   }
 };
@@ -115,12 +111,10 @@ rc.comparator.checkUserBeforeDest = function(lookupData){
   var del = false;
   for(var i = 0; i<lookupData.length; i++){
     if((lookupData[i].lonlat[0] === this.currentdestlon && lookupData[i].lonlat[1] === this.currentdestlat)){ 
-      console.log('Deleting Route! ',this.allRoutes[this.counter].routeAndDirTag);
       del = true;
       break;
     }  
     if(lookupData[i].lonlat[0] === this.currentuserlon && lookupData[i].lonlat[1] === this.currentuserlat){
-      console.log('Saving Route! ',this.allRoutes[this.counter].routeAndDirTag);
       break;
     }
   }
@@ -135,12 +129,9 @@ rc.comparator.checkUserBeforeDest = function(lookupData){
 rc.findRoutesNear = function(coordinates, cb, routeArray){
   var query = {};
   var num = 300;
-  console.log('findroutesnear',coordinates);
   if(routeArray){
     query.routename = {$in: routeArray};
   }
-  console.log(query);
-  console.log(this.db.routesdb);
   this.db.routesdb.command({ 
     geoNear: 'busstops3',
     near: {
@@ -154,20 +145,16 @@ rc.findRoutesNear = function(coordinates, cb, routeArray){
   },
   function(err, res){
     if(err) console.error(err);
-    console.log('Total nearby routes: ', res.results.length);
     var routesObj = {};
     var resultsArr = res.results;
     for(var i = 0; i<resultsArr.length; i++){
-      console.log(resultsArr[i].obj.routeAndDirTag);
       // Since geo results are sorted by proximity, only save the closest route+dirTag object
       if(!routesObj[resultsArr[i].obj.routename+':'+resultsArr[i].obj.dirTag]){
         routesObj[resultsArr[i].obj.routename+':'+resultsArr[i].obj.dirTag] = resultsArr[i].obj;
       }
     }
-    console.log('MATCH RESULTS: ',Object.keys(routesObj));
     cb(routesObj);
   });
-  console.log('???');
 };
 
 rc.util.connect = function(dbName){
