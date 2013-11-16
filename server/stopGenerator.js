@@ -5,7 +5,7 @@ var MongoClient = require('mongodb').MongoClient,
 var mongoClient = new MongoClient(new Server('localhost', 27017));
 
 mongoClient.open(function(err, mongoClient) {
-  if (err) console.error("Error: ",err);
+  if (err) console.error("Error: ", err);
   // sg.createStopsCollection();
 });
 

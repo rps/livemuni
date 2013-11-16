@@ -1,12 +1,8 @@
-var req = require('request');
-var xmldoc = require('xmldoc');
-var MongoClient = require('mongodb').MongoClient,
-    Server = require('mongodb').Server;
-
-var mongoClient = new MongoClient(new Server('localhost', 27017));
+var common = require('common.js'),
+    mongoClient = new common.MongoClient(new common.Server('localhost', 27017));
 
 mongoClient.open(function(err, mongoClient) {
-  if (err) console.error("Error: ",err);
+  if (err) console.error("Error: ", err);
   // rg.getRoutesFromMuni();
 });
 
@@ -17,9 +13,9 @@ var rg = {
   currentDirection: '',
   getRoutesFromMuni: function(){
     var self = this;
-    req('http://webservices.nextbus.com/service/publicXMLFeed?command=routeConfig&a=sf-muni&terse', function (error, response, body) {
+    common.req('http://webservices.nextbus.com/service/publicXMLFeed?command=routeConfig&a=sf-muni&terse', function (error, response, body) {
       if (!error && response.statusCode === 200) {
-        var doc = new xmldoc.XmlDocument(response.body);
+        var doc = new common.xmldoc.XmlDocument(response.body);
         doc.eachChild(self.parseRoutes.bind(self)); // Passes child, index, array as args
       }
     });

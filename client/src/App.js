@@ -89,7 +89,7 @@ lm.App.prototype.getStopPredictions = function(stopObj){
   console.log('calling stops');
   d3.xhr(query, function(err, res){
     if(err){
-      console.log('Prediction error: ',err);
+      console.error('Prediction error: ',err);
     }
 
     var doc = new XmlDocument(res.response),

@@ -87,7 +87,6 @@ lm.Map = function(config) {
   google.maps.event.addListenerOnce(map, 'idle', function() {
     self.overlay.setMap(self.gMap);
   });
-
 };
 
 // Alias the getBounds function of Google Maps
@@ -99,7 +98,7 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
   var self = this;
   var clickedOnce = false;
   var userLonLat = [userPosition.coords.longitude, userPosition.coords.latitude]; // not accurate in browser, may be accurate in phone
-  // var userLonLat = [-122.408904,37.783594];  // fake TODO fix
+  // var userLonLat = [-122.408904,37.783594];  // fake
   var userMapLatLng = new google.maps.LatLng(userLonLat[1],userLonLat[0]);
   
   lm.app.set('userloc',[{lat:userLonLat[1],lon:userLonLat[0]}]);
@@ -166,10 +165,6 @@ lm.Map.prototype.getRouteObjFromServer = function(routeObj){
   d3.xhr('/findStopsOnRoutes')
     .header('Content-Type','application/json')
     .post(send, this.routify.bind(this));
-
-  // d3.xhr('/routify')
-  //   .header('Content-Type','application/json')
-  //   .post(send, this.routify.bind(this));
 };
 
 // Routify takes an array of map objects and renders them.
@@ -179,7 +174,7 @@ lm.Map.prototype.routify = function(err, res){
       coord,
       stopRead,
       allRoutes = {},
-      endPairs = {}, // obj of route objs containing dest/user lat and lon
+      endPairs = {}, // Obj of route objs containing dest/user lat and lon
       self = this,
       endpointArray = lm.app.lastStopObjArray; // Only routeStops we have predictions for
 
