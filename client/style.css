@@ -58,17 +58,16 @@ html, body, #map-canvas {
   top: 1%;
   height: 98%;
   width: 98%;
-  list-style: none;
-  float: left;
-  margin: 0 3% 0 2%;
+  margin: 0 2% 0 2%;
   padding: 0;
   box-shadow: 0 4px 2px -2px #888888;
-
-  border-radius: 20px;
+  border-radius: 10px;
+  display: table;
+  table-layout: fixed;
 }
 
 #navbar li {
-  display: inline;
+  display: table-cell;
   padding: 0;
   margin: 0;
 }
@@ -78,9 +77,9 @@ html, body, #map-canvas {
   border-bottom:1px solid #696969;
   border-right:1px solid #696969;
   border-left: 0px;
-  margin:0;
+  margin: 2px 0 0;
   height: 100%;
-  width: 24.8%; 
+  width: 100%; 
   padding: 0;
   text-shadow: 0 -1px 1px rgba(0,0,0,0.1);
   text-size-adjust: none;
@@ -110,8 +109,8 @@ html, body, #map-canvas {
 #navbar .left:active {
   border-top-left-radius: 10px;
   border-bottom-left-radius: 10px;
-  border-bottom: 2px solid #696969;
-  border-left: 2px solid #696969;
+  border-bottom: 1px solid #696969;
+  border-left: 1px solid #696969;
 }
 
 #navbar .right {
