@@ -2,19 +2,15 @@
 /**
  * Module dependencies.
  */
-
-var express = require('express'),
+var common = require('common.js'),
+    app = common.express(),
     routes = require('./routes/routes.js'),
-    http = require('http'),
-    path = require('path'),
     config = require('../config.js'),
-    fs = require('fs'),
-    app = express();
-var routeCompiler = require('./routeCompiler.js'); // DEL
+    routeCompiler = require('./routeCompiler.js'); // DEL
 
 // All environments
 app.set('port', process.env.PORT || 3000);
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', common.path.join(__dirname, 'views'));
 app.use(express.favicon());
 app.use(express.logger('dev'));
 app.use(express.json());
@@ -22,7 +18,7 @@ app.use(express.urlencoded());
 app.use(express.bodyParser());
 app.use(express.methodOverride());
 app.use(app.router);
-app.use(express.static(path.join(__dirname, '../client/index.html')));
+app.use(express.static(common.path.join(__dirname, '../client/index.html')));
 
 // Development only
 if ('development' == app.get('env')) {
@@ -53,7 +49,7 @@ app.post('/saveNewPath', function(req, res){
 app.post('/findStopsOnRoutes', function(req,res){
   routes.findStopsOnRoutes(req.body, res);
 });
-http.createServer(app).listen(app.get('port'), function(){
+common.http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
 
@@ -81,7 +77,7 @@ function cbcontinue(routeData, originalres){
 // DEL
 function generatePathData(req, res){
   res.set('Content-Type', 'application/javascript');
-  var readStream = fs.createReadStream(path.join(__dirname, './generatePath.js')).pipe(res);
+  var readStream = common.fs.createReadStream(common.path.join(__dirname, './generatePath.js')).pipe(res);
   readStream.on('error', function(error){
     console.log(error);
     res.end(error);

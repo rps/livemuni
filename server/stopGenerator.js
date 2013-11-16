@@ -1,8 +1,5 @@
-var MongoClient = require('mongodb').MongoClient,
-    format = require('util').format,
-    Server = require('mongodb').Server;
-
-var mongoClient = new MongoClient(new Server('localhost', 27017));
+var common = require('common.js'),
+    mongoClient = new common.MongoClient(new common.Server('localhost', 27017));
 
 mongoClient.open(function(err, mongoClient) {
   if (err) console.error("Error: ", err);
