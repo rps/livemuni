@@ -1,4 +1,4 @@
-var common = require('common.js')
+var common = require('./common.js'),
     mongoClient = new common.MongoClient(new common.Server('localhost', 27017));
 
 mongoClient.open(function(err, mongoClient) {
@@ -25,7 +25,7 @@ var rc = {
 
 // Return routes that pass by the user start and destination end points.
 rc.eligibleRoutes = function(userLonlat, destLonlat, res){
-  this.res = res;
+  this.comparator.response = res;
   this.userLonlat = userLonlat;
   this.destLonlat = destLonlat;
   this.setUser = this.setUser.bind(this);

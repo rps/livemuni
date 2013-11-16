@@ -1,4 +1,4 @@
-var common = require('common.js'),
+var common = require('./common.js'),
     mongoClient = new common.MongoClient(new common.Server('localhost', 27017));
 
 mongoClient.open(function(err, mongoClient) {
