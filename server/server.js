@@ -3,17 +3,16 @@
  * Module dependencies.
  */
 
-var express = require('express');
-var routes = require('./routes/routes.js');
-var http = require('http');
-var path = require('path');
-var config = require('../config.js');
-var routeCompiler = require('./routeCompiler.js');
-var fs = require('fs');
+var express = require('express'),
+    routes = require('./routes/routes.js'),
+    http = require('http'),
+    path = require('path'),
+    config = require('../config.js'),
+    fs = require('fs'),
+    app = express();
+var routeCompiler = require('./routeCompiler.js'); // DEL
 
-var app = express();
-
-// all environments
+// All environments
 app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.favicon());
@@ -25,11 +24,12 @@ app.use(express.methodOverride());
 app.use(app.router);
 app.use(express.static(path.join(__dirname, '../client/index.html')));
 
-// development only
+// Development only
 if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
+// GET request handling
 app.get('/', routes.index);
 app.get('/style.css', routes.style);
 app.get('/lib*', routes.files); // TODO remove
@@ -38,33 +38,31 @@ app.get('/genpath', routes.pathgen);
 app.get('/generatePath.js', generatePathData);
 app.get('/triggerPathGen', triggerPathGen);
 
+// POST request handling
 app.post('/routify', function(req, res){
-  console.log(req.body);
   routes.pullBusRoutes(req.body, res);
 });
-
 app.post('/coordinates', function(req, res){
-  console.log('coordinates post req');
   routes.coordinates(req.body, res);
 });
-
+// DEL
 app.post('/saveNewPath', function(req, res){
   console.log('INCOMING POST');
   routeCompiler.saveBrain(req.body, res);
 });
-
 app.post('/findStopsOnRoutes', function(req,res){
   routes.findStopsOnRoutes(req.body, res);
 });
-
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
 
+// DEL
 function triggerPathGen(req, res){
   routeCompiler.listAllRoutes(cbcontinue, res);
 }
 
+// DEL - queryRouteData missing
 function cbcontinue(routeData, originalres){
   var routes = [];
   for (var i = 0; i<routeData.length; i++){
@@ -80,6 +78,7 @@ function cbcontinue(routeData, originalres){
   routeCompiler.queryRouteData(callback, direction, routes);
 }
 
+// DEL
 function generatePathData(req, res){
   res.set('Content-Type', 'application/javascript');
   var readStream = fs.createReadStream(path.join(__dirname, './generatePath.js')).pipe(res);

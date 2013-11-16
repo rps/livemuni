@@ -1,37 +1,35 @@
 var fs = require('fs');
 var req = require('request');
 var xmldoc = require('xmldoc');
+var routeGenerator = require('routeGenerator.js');
 var MongoClient = require('mongodb').MongoClient,
     format = require('util').format,
     Server = require('mongodb').Server;
-// mongod --dbpath /path/to/livemuni/db
 
 var mongoClient = new MongoClient(new Server('localhost', 27017));
 mongoClient.open(function(err, mongoClient) {
-  if(err) console.log("This is an error: ",err);
-  console.log('opening mongodb connection');
-  // getRoutesFromMuni();
-  // createStopsCollection();
-  // spool();
+  if (err) console.error("Error: ",err);
+  // getRoutesFromMuni(); // DEL for review
+  // createStopsCollection(); // DEL for review
+  // spool(); // DEL for review
 });
 
-
-
 var connect = function(dbName){
-  var dbInfo = {};
-  dbInfo[dbName] = mongoClient.db(dbName);
+  var db = {};
+  db[dbName] = mongoClient.db(dbName);
   for(var i = 1; i<arguments.length; i++){
-    dbInfo[arguments[i]] = dbInfo[dbName].collection(arguments[i]);
+    db[arguments[i]] = db[dbName].collection(arguments[i]);
   }
-  return dbInfo;
+  return db;
 };
 
+// DEL
 var spool = function(){
   var obby = {"1":{"color":"cc6600","oppcolor":"000000"},"2":{"color":"000000","oppcolor":"ffffff"},"3":{"color":"339999","oppcolor":"000000"},"5":{"color":"666699","oppcolor":"ffffff"},"6":{"color":"996699","oppcolor":"000000"},"9":{"color":"889944","oppcolor":"000000"},"10":{"color":"b07d00","oppcolor":"000000"},"12":{"color":"b07d00","oppcolor":"000000"},"14":{"color":"339999","oppcolor":"000000"},"17":{"color":"003399","oppcolor":"ffffff"},"18":{"color":"996699","oppcolor":"000000"},"19":{"color":"000000","oppcolor":"ffffff"},"21":{"color":"660000","oppcolor":"ffffff"},"22":{"color":"ff6633","oppcolor":"000000"},"23":{"color":"b07d00","oppcolor":"000000"},"24":{"color":"996699","oppcolor":"000000"},"27":{"color":"660099","oppcolor":"ffffff"},"28":{"color":"000000","oppcolor":"ffffff"},"29":{"color":"ff6633","oppcolor":"000000"},"30":{"color":"990099","oppcolor":"ffffff"},"31":{"color":"339999","oppcolor":"000000"},"33":{"color":"660000","oppcolor":"ffffff"},"35":{"color":"ff6633","oppcolor":"000000"},"36":{"color":"003399","oppcolor":"ffffff"},"37":{"color":"000000","oppcolor":"ffffff"},"38":{"color":"ff6633","oppcolor":"000000"},"39":{"color":"ff6633","oppcolor":"000000"},"41":{"color":"b07d00","oppcolor":"000000"},"43":{"color":"006633","oppcolor":"ffffff"},"44":{"color":"ff6633","oppcolor":"000000"},"45":{"color":"006633","oppcolor":"ffffff"},"47":{"color":"667744","oppcolor":"ffffff"},"48":{"color":"cc6600","oppcolor":"000000"},"49":{"color":"b07d00","oppcolor":"000000"},"52":{"color":"889944","oppcolor":"000000"},"54":{"color":"cc0033","oppcolor":"ffffff"},"56":{"color":"990099","oppcolor":"ffffff"},"59":{"color":"cc3399","oppcolor":"ffffff"},"60":{"color":"4444a4","oppcolor":"ffffff"},"61":{"color":"9ac520","oppcolor":"000000"},"66":{"color":"666699","oppcolor":"ffffff"},"67":{"color":"555555","oppcolor":"ffffff"},"71":{"color":"667744","oppcolor":"ffffff"},"88":{"color":"555555","oppcolor":"ffffff"},"90":{"color":"660000","oppcolor":"ffffff"},"91":{"color":"667744","oppcolor":"ffffff"},"108":{"color":"555555","oppcolor":"ffffff"},"F":{"color":"555555","oppcolor":"ffffff"},"J":{"color":"cc6600","oppcolor":"000000"},"KT":{"color":"cc0033","oppcolor":"ffffff"},"L":{"color":"660099","oppcolor":"ffffff"},"M":{"color":"006633","oppcolor":"ffffff"},"N":{"color":"003399","oppcolor":"ffffff"},"NX":{"color":"006633","oppcolor":"ffffff"},"1AX":{"color":"990000","oppcolor":"ffffff"},"1BX":{"color":"cc3333","oppcolor":"ffffff"},"5L":{"color":"666699","oppcolor":"ffffff"},"8X":{"color":"996699","oppcolor":"000000"},"8AX":{"color":"996699","oppcolor":"000000"},"8BX":{"color":"996699","oppcolor":"000000"},"9L":{"color":"889944","oppcolor":"000000"},"14L":{"color":"009900","oppcolor":"ffffff"},"14X":{"color":"cc0033","oppcolor":"ffffff"},"16X":{"color":"cc0033","oppcolor":"ffffff"},"28L":{"color":"009900","oppcolor":"ffffff"},"30X":{"color":"cc0033","oppcolor":"ffffff"},"31AX":{"color":"990000","oppcolor":"ffffff"},"31BX":{"color":"cc3333","oppcolor":"ffffff"},"38AX":{"color":"990000","oppcolor":"ffffff"},"38BX":{"color":"cc3333","oppcolor":"ffffff"},"38L":{"color":"009900","oppcolor":"ffffff"},"71L":{"color":"009900","oppcolor":"ffffff"},"76X":{"color":"009900","oppcolor":"ffffff"},"81X":{"color":"cc0033","oppcolor":"ffffff"},"82X":{"color":"cc0033","oppcolor":"ffffff"},"83X":{"color":"cc0033","oppcolor":"ffffff"},"K OWL":{"color":"198080","oppcolor":"ffffff"},"L OWL":{"color":"330066","oppcolor":"ffffff"},"M OWL":{"color":"004d19","oppcolor":"ffffff"},"N OWL":{"color":"001980","oppcolor":"ffffff"},"T OWL":{"color":"001980","oppcolor":"ffffff"}}; 
-  var dbInfo = connect('routesdb','mapobjects2');
+  var db = connect('routesdb','mapobjects2');
   for(var key in obby){
     console.log(key, obby[key].color);
-    dbInfo.mapobjects2.update({routename:key},{$set: {routeoppcolor: obby[key].oppcolor }},{multi:true},function(err){
+    db.mapobjects2.update({routename:key},{$set: {routeoppcolor: obby[key].oppcolor }},{multi:true},function(err){
       if(err){ 
         console.log (err);
       }
@@ -43,13 +41,13 @@ var spool = function(){
 };
 
 var getRoutesFromMuni = function(){
-  var dbInfo = connect('routesdb','busroutes2');
+  var db = connect('routesdb','busroutes2');
 
   req('http://webservices.nextbus.com/service/publicXMLFeed?command=routeConfig&a=sf-muni&terse', function (error, response, body) {
     if (!error && response.statusCode === 200) {
       var doc = new xmldoc.XmlDocument(response.body);
-      dbInfo.counter = 0;
-      var parseRoutesNow = parseRoutes.bind(undefined, dbInfo);
+      db.counter = 0;
+      var parseRoutesNow = parseRoutes.bind(undefined, db);
       doc.eachChild(parseRoutesNow);
     }
   });
@@ -67,23 +65,23 @@ var makeRouteObj = function(tag, title, color, oppositeColor){
 };
 
 // Handles a single <route> containing <stop>s and <direction>s lists of stops
-var parseRoutes = function(dbInfo, child, index, array){
+var parseRoutes = function(db, child, index, array){
   if(child.name === 'route'){
-    dbInfo.counter++;
-    console.log(dbInfo.counter);
+    db.counter++;
+    console.log(db.counter);
     
     var routeObj = makeRouteObj(child.attr.tag, child.attr.title, child.attr.color, child.attr.oppositeColor);
-    var parseRouteStopsNow = parseRouteStops.bind(undefined, dbInfo, routeObj);
+    var parseRouteStopsNow = parseRouteStops.bind(undefined, db, routeObj);
 
     child.eachChild(parseRouteStopsNow);
     var mongoRouteObj = mongoReformat(routeObj);
-    insertIntoDB(mongoRouteObj, dbInfo);
+    insertIntoDB(mongoRouteObj, db);
   }
 };
 
 // 8X stops are being stored in the wrong order!!!!
 
-var parseRouteStops = function(dbInfo, routeObj, grandChild, index, array){
+var parseRouteStops = function(db, routeObj, grandChild, index, array){
   if(grandChild.name === 'stop' && grandChild.attr.lon && grandChild.attr.lat){ // some lon/lat are undefined from nextmuni
     routeObj.stops.push({
       stopTag: grandChild.attr.tag,
@@ -128,13 +126,13 @@ var mongoReformat = function(routeObj){
   return mongoRouteObj;
 };
 
-var insertIntoDB = function(routeObj, dbInfo){
-  dbInfo.busroutes2.insert(routeObj, function(err, result){
-    dbInfo.counter--;
-    console.log(dbInfo.counter);
-    if(dbInfo.counter === 0){
+var insertIntoDB = function(routeObj, db){
+  db.busroutes2.insert(routeObj, function(err, result){
+    db.counter--;
+    console.log(db.counter);
+    if(db.counter === 0){
       console.log('closing mongodb connection');
-      dbInfo.routesdb.close(); // TODO: call createStopsCollection instead
+      db.routesdb.close(); // TODO: call createStopsCollection instead
     }
   });
 };
@@ -154,21 +152,21 @@ exports.findStopsOnRoutes = function(request, response){
   var db = connect('routesdb','busstops2');
 
   db.busstops2.find({routeAndDirTag: {$in: Object.keys(request)}},{_id:0}).toArray(function(err,res){
-    if(err) console.log("This is an error: ",err);
+    if(err) console.log("Error: ",err);
     response.end(JSON.stringify(res));
   });
 };
 
 // dual function to save user coord early when possible
 exports.findRoutesNear = findRoutesNear = function(coordinates, cb, routeArray){
-  var dbInfo = connect('routesdb','busstops2');
+  var db = connect('routesdb','busstops2');
   var query = {};
   var num = 300;
   console.log('findroutesnear',coordinates);
   if(routeArray){
     query.routename = {$in: routeArray};
   }
-  dbInfo.routesdb.command({ 
+  db.routesdb.command({ 
     geoNear: 'busstops2',
     near: {
       type: 'Point',
@@ -198,14 +196,14 @@ exports.findRoutesNear = findRoutesNear = function(coordinates, cb, routeArray){
 var globalObj;
 
 // Verify that user comes before dest
-var validateRoutes = function(routedata, dbInfo){
+var validateRoutes = function(routedata, db){
   console.log('Sending to MongoDB');
   var userlonlat,
       destlonlat,
       routename = routedata.routeAndDirTag.slice(0,routedata.routeAndDirTag.indexOf(':')),
       dirTag = routedata.routeAndDirTag.slice(routedata.routeAndDirTag.indexOf(':')+1);
 
-  dbInfo.busstops2.find({dirTag: dirTag, routename: routename},{_id:0}).toArray(function(err,res){
+  db.busstops2.find({dirTag: dirTag, routename: routename},{_id:0}).toArray(function(err,res){
     if(err){
       console.log('ValidateRoutes ERROR: ',err);
     }
@@ -229,7 +227,7 @@ globalObj = {
       this.currentuserlat = this.allRoutes[this.counter].user.lonlat[1];
       this.currentdestlon = this.allRoutes[this.counter].dest.lonlat[0];
       this.currentdestlat = this.allRoutes[this.counter].dest.lonlat[1];
-      validateRoutes(this.allRoutes[this.counter], this.dbInfo);
+      validateRoutes(this.allRoutes[this.counter], this.db);
     } else {
       var temp = {};
       var dirTag;
@@ -279,7 +277,7 @@ globalObj = {
 
   }
 }; // TODO: NO GLOBAL!!!
-globalObj.dbInfo = connect('routesdb','busstops2');
+globalObj.db = connect('routesdb','busstops2');
 globalObj.validate = globalObj.validate.bind(globalObj);
 globalObj.trigger = globalObj.trigger.bind(globalObj);
 
@@ -335,7 +333,7 @@ exports.saveBrain = function(data, response){
   var mapobjects = routesdb.collection('mapobjects'); // TODO: use connect function
   mapobjects.insert({routename:data.routename, path:data.routeSegments, direction:data.direction}, function(err,res){
     if(err) {
-      console.log("This is an error: ",err);
+      console.log("Error: ",err);
     } else {
       console.log('SAVED TO mapobjects');
       response.end('woot');
@@ -345,10 +343,10 @@ exports.saveBrain = function(data, response){
 
 exports.pullRoutes = function(routesWanted, resp){
   var direction = Object.keys(routesWanted)[0];
-  var dbInfo = connect('routesdb','mapobjects2');
-  dbInfo.mapobjects2.find({routename: {$in: routesWanted[direction]}, direction: direction},{_id:0}).toArray(function(err, res){
+  var db = connect('routesdb','mapobjects2');
+  db.mapobjects2.find({routename: {$in: routesWanted[direction]}, direction: direction},{_id:0}).toArray(function(err, res){
     if(err){
-      console.log("This is an error: ",err);
+      console.log("Error: ",err);
     }
     resp.end(JSON.stringify(res));
   });
@@ -380,7 +378,7 @@ var createStopsCollection = function(){
     var self = this;
     if(this.tempCountTicker < this.tempCount){
       globalMind.busstops2.insert(this.decompiled[this.tempCountTicker], function(err, res){
-        if(err) console.log("This is an error: ",err);
+        if(err) console.log("Error: ",err);
         self.counter--;
         if(self.counter === 0){ // triggers the 'else' in triggerNewRoute
           self.triggerNewRoute();

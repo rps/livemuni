@@ -16,11 +16,11 @@ exports.files = function(req, res){
 };
 
 exports.main = function(req, res){
-  var readStream = fs.createReadStream(path.join(__dirname, '../../client/dist/livemuni.js')).pipe(res);
+  fs.createReadStream(path.join(__dirname, '../../client/dist/livemuni.js')).pipe(res);
 };
 
 exports.style = function(req, res){
-  var readStream = fs.createReadStream(path.join(__dirname, '../../client/style.css')).pipe(res);
+  fs.createReadStream(path.join(__dirname, '../../client/style.css')).pipe(res);
 };
 
 exports.pathgen = function(req, res){
@@ -31,10 +31,11 @@ exports.coordinates = function(req, res){
   routeCompiler.eligibleRoutes(req[0], req[1], res);
 };
 
-exports.pullBusRoutes = function(req, res){
-  routeCompiler.pullRoutes(req, res);
-};
-
 exports.findStopsOnRoutes = function(req, res){
   routeCompiler.findStopsOnRoutes(req, res);
+};
+
+// DEL
+exports.pullBusRoutes = function(req, res){
+  routeCompiler.pullRoutes(req, res);
 };
