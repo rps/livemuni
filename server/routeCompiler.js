@@ -23,6 +23,11 @@ var connect = function(dbName){
   return db;
 };
 
+var someFunction = function(){
+  var db = connect('routesdb','busroutes2');
+  routeGenerator.getRoutesFromMuni(db);
+}
+
 // DEL
 var spool = function(){
   var obby = {"1":{"color":"cc6600","oppcolor":"000000"},"2":{"color":"000000","oppcolor":"ffffff"},"3":{"color":"339999","oppcolor":"000000"},"5":{"color":"666699","oppcolor":"ffffff"},"6":{"color":"996699","oppcolor":"000000"},"9":{"color":"889944","oppcolor":"000000"},"10":{"color":"b07d00","oppcolor":"000000"},"12":{"color":"b07d00","oppcolor":"000000"},"14":{"color":"339999","oppcolor":"000000"},"17":{"color":"003399","oppcolor":"ffffff"},"18":{"color":"996699","oppcolor":"000000"},"19":{"color":"000000","oppcolor":"ffffff"},"21":{"color":"660000","oppcolor":"ffffff"},"22":{"color":"ff6633","oppcolor":"000000"},"23":{"color":"b07d00","oppcolor":"000000"},"24":{"color":"996699","oppcolor":"000000"},"27":{"color":"660099","oppcolor":"ffffff"},"28":{"color":"000000","oppcolor":"ffffff"},"29":{"color":"ff6633","oppcolor":"000000"},"30":{"color":"990099","oppcolor":"ffffff"},"31":{"color":"339999","oppcolor":"000000"},"33":{"color":"660000","oppcolor":"ffffff"},"35":{"color":"ff6633","oppcolor":"000000"},"36":{"color":"003399","oppcolor":"ffffff"},"37":{"color":"000000","oppcolor":"ffffff"},"38":{"color":"ff6633","oppcolor":"000000"},"39":{"color":"ff6633","oppcolor":"000000"},"41":{"color":"b07d00","oppcolor":"000000"},"43":{"color":"006633","oppcolor":"ffffff"},"44":{"color":"ff6633","oppcolor":"000000"},"45":{"color":"006633","oppcolor":"ffffff"},"47":{"color":"667744","oppcolor":"ffffff"},"48":{"color":"cc6600","oppcolor":"000000"},"49":{"color":"b07d00","oppcolor":"000000"},"52":{"color":"889944","oppcolor":"000000"},"54":{"color":"cc0033","oppcolor":"ffffff"},"56":{"color":"990099","oppcolor":"ffffff"},"59":{"color":"cc3399","oppcolor":"ffffff"},"60":{"color":"4444a4","oppcolor":"ffffff"},"61":{"color":"9ac520","oppcolor":"000000"},"66":{"color":"666699","oppcolor":"ffffff"},"67":{"color":"555555","oppcolor":"ffffff"},"71":{"color":"667744","oppcolor":"ffffff"},"88":{"color":"555555","oppcolor":"ffffff"},"90":{"color":"660000","oppcolor":"ffffff"},"91":{"color":"667744","oppcolor":"ffffff"},"108":{"color":"555555","oppcolor":"ffffff"},"F":{"color":"555555","oppcolor":"ffffff"},"J":{"color":"cc6600","oppcolor":"000000"},"KT":{"color":"cc0033","oppcolor":"ffffff"},"L":{"color":"660099","oppcolor":"ffffff"},"M":{"color":"006633","oppcolor":"ffffff"},"N":{"color":"003399","oppcolor":"ffffff"},"NX":{"color":"006633","oppcolor":"ffffff"},"1AX":{"color":"990000","oppcolor":"ffffff"},"1BX":{"color":"cc3333","oppcolor":"ffffff"},"5L":{"color":"666699","oppcolor":"ffffff"},"8X":{"color":"996699","oppcolor":"000000"},"8AX":{"color":"996699","oppcolor":"000000"},"8BX":{"color":"996699","oppcolor":"000000"},"9L":{"color":"889944","oppcolor":"000000"},"14L":{"color":"009900","oppcolor":"ffffff"},"14X":{"color":"cc0033","oppcolor":"ffffff"},"16X":{"color":"cc0033","oppcolor":"ffffff"},"28L":{"color":"009900","oppcolor":"ffffff"},"30X":{"color":"cc0033","oppcolor":"ffffff"},"31AX":{"color":"990000","oppcolor":"ffffff"},"31BX":{"color":"cc3333","oppcolor":"ffffff"},"38AX":{"color":"990000","oppcolor":"ffffff"},"38BX":{"color":"cc3333","oppcolor":"ffffff"},"38L":{"color":"009900","oppcolor":"ffffff"},"71L":{"color":"009900","oppcolor":"ffffff"},"76X":{"color":"009900","oppcolor":"ffffff"},"81X":{"color":"cc0033","oppcolor":"ffffff"},"82X":{"color":"cc0033","oppcolor":"ffffff"},"83X":{"color":"cc0033","oppcolor":"ffffff"},"K OWL":{"color":"198080","oppcolor":"ffffff"},"L OWL":{"color":"330066","oppcolor":"ffffff"},"M OWL":{"color":"004d19","oppcolor":"ffffff"},"N OWL":{"color":"001980","oppcolor":"ffffff"},"T OWL":{"color":"001980","oppcolor":"ffffff"}}; 
@@ -40,102 +45,7 @@ var spool = function(){
   }
 };
 
-var getRoutesFromMuni = function(){
-  var db = connect('routesdb','busroutes2');
 
-  req('http://webservices.nextbus.com/service/publicXMLFeed?command=routeConfig&a=sf-muni&terse', function (error, response, body) {
-    if (!error && response.statusCode === 200) {
-      var doc = new xmldoc.XmlDocument(response.body);
-      db.counter = 0;
-      var parseRoutesNow = parseRoutes.bind(undefined, db);
-      doc.eachChild(parseRoutesNow);
-    }
-  });
-};
-
-var makeRouteObj = function(tag, title, color, oppositeColor){
-  return {
-    stops: [],
-    routename: tag,
-    longname: title,
-    color: color,
-    oppositeColor: oppositeColor,
-    directionPairs: {}
-  };
-};
-
-// Handles a single <route> containing <stop>s and <direction>s lists of stops
-var parseRoutes = function(db, child, index, array){
-  if(child.name === 'route'){
-    db.counter++;
-    console.log(db.counter);
-    
-    var routeObj = makeRouteObj(child.attr.tag, child.attr.title, child.attr.color, child.attr.oppositeColor);
-    var parseRouteStopsNow = parseRouteStops.bind(undefined, db, routeObj);
-
-    child.eachChild(parseRouteStopsNow);
-    var mongoRouteObj = mongoReformat(routeObj);
-    insertIntoDB(mongoRouteObj, db);
-  }
-};
-
-// 8X stops are being stored in the wrong order!!!!
-
-var parseRouteStops = function(db, routeObj, grandChild, index, array){
-  if(grandChild.name === 'stop' && grandChild.attr.lon && grandChild.attr.lat){ // some lon/lat are undefined from nextmuni
-    routeObj.stops.push({
-      stopTag: grandChild.attr.tag,
-      stopName: grandChild.attr.title,
-      lonlat: [Number(grandChild.attr.lon), Number(grandChild.attr.lat)] // lonlat order required for mongo 2d index
-    });
-  } else if(grandChild.name === 'direction'){
-    routeObj[grandChild.attr.tag] = []; // Sets the dirTag as a key on the routeObj
-    routeObj.directionPairs[grandChild.attr.tag] = grandChild.attr.title; // Save direction tag and readable title
-    var collectStopTagsNow = collectStopTags.bind(undefined, routeObj, grandChild.attr.tag); 
-    grandChild.eachChild(collectStopTagsNow);
-  }
-};
-
-// Working correctly
-var collectStopTags = function(routeObj, direction, stop, index){
-  routeObj[direction].push(stop.attr.tag);
-};
-
-// quickfix to create more readily queryable mongo collection
-var mongoReformat = function(routeObj){
-  var mongoRouteObj = {};
-  mongoRouteObj.routename = routeObj.routename;
-  mongoRouteObj.longname = routeObj.longname;
-  mongoRouteObj.color = routeObj.color;
-  mongoRouteObj.oppositeColor = routeObj.oppositeColor;
-  mongoRouteObj.directionPairs = routeObj.directionPairs;
-  for(var dirTag in routeObj.directionPairs){
-    console.log(dirTag);
-    mongoRouteObj[dirTag] = [];
-    for(var i = 0; i<routeObj[dirTag].length; i++){
-      for(var j = 0; j<routeObj.stops.length; j++){
-        if(routeObj.stops[j].stopTag === routeObj[dirTag][i]){
-          mongoRouteObj[dirTag].push(routeObj.stops[j]);
-          // if(dirTag === '8X'){
-          //   console.log(mongoRoute);
-          // }
-        }
-      }
-    }
-  }
-  return mongoRouteObj;
-};
-
-var insertIntoDB = function(routeObj, db){
-  db.busroutes2.insert(routeObj, function(err, result){
-    db.counter--;
-    console.log(db.counter);
-    if(db.counter === 0){
-      console.log('closing mongodb connection');
-      db.routesdb.close(); // TODO: call createStopsCollection instead
-    }
-  });
-};
 
 exports.listAllRoutes = function(cb, originalres){
   console.log('listAllRoutes');
@@ -352,83 +262,4 @@ exports.pullRoutes = function(routesWanted, resp){
   });
 };
 
-// Create a flat, indexable, queryable collection of stops from all routes
-var createStopsCollection = function(){
-  var globalMind = {
-    routeTicker: 0,
-    allRoutes: [],
-    counter: 0,
-    triggerNewRoute: function(){
-      if(this.routeTicker < this.allRoutes.length){
-        routeFlattener(this.allRoutes[this.routeTicker],this);
-        this.routeTicker++;
-      } else {
-        var self = this;
-        this.busstops2.ensureIndex({'lonlat':'2dsphere'}, function(err, res){
-          if(err) throw err;
-          self.routesdb.close();
-        });
-      }
-    }
-  };
-  globalMind.routesdb = mongoClient.db('routesdb'); // TODO: use connect function
-  globalMind.busroutes2 = globalMind.routesdb.collection('busroutes2'); // TODO: use connect function
-  globalMind.busstops2 = globalMind.routesdb.collection('busstops2');// TODO: use connect function
-  globalMind.syncronousInsert = function(){
-    var self = this;
-    if(this.tempCountTicker < this.tempCount){
-      globalMind.busstops2.insert(this.decompiled[this.tempCountTicker], function(err, res){
-        if(err) console.log("Error: ",err);
-        self.counter--;
-        if(self.counter === 0){ // triggers the 'else' in triggerNewRoute
-          self.triggerNewRoute();
-        } else {
-          self.tempCountTicker++;
-          console.log('tempcount: ', self.tempCountTicker);
-          self.syncronousInsert();
-        }
-      });
-    } else {
-      this.tempCount = 0;
-      this.decompiled = [];
-      this.tempCountTicker = 0;
-      this.triggerNewRoute();
-    }
-    
-  };
-  globalMind.syncronousInsert.bind(globalMind);
-  globalMind.busroutes2.find({}).toArray(function(err,res){
-    if(!err){
-      globalMind.allRoutes = res;
-      globalMind.triggerNewRoute();
-    }
-  });
-};
-
-// Combine every stop with its route information
-var routeFlattener = function(aRoute, globalMind){
-  var decompiledRoute = [];
-  var tempStop = {};
-  // if(aRoute.routename === '8X') console.log('aRoute: ',aRoute);
-  for(var dirTag in aRoute.directionPairs){
-    for(var i = 0; i<aRoute[dirTag].length; i++){
-      tempStop = aRoute[dirTag][i];
-      tempStop.routename = aRoute.routename;
-      tempStop.color = aRoute.color;
-      tempStop.oppositeColor = aRoute.oppositeColor;
-      tempStop.dirTag = dirTag;
-      tempStop.routeAndDirTag = aRoute.routename+':'+dirTag;
-      tempStop.fullDirection = aRoute.directionPairs[dirTag];
-      tempStop.direction = aRoute.directionPairs[dirTag].slice(0,2) === 'In' ? 'Inbound' : 'Outbound';
-      decompiledRoute.push(tempStop);
-      globalMind.counter++;
-      tempStop = {};
-    }
-  }
-  // if(aRoute.routename === '8X') console.log('decomp: ',decompiledRoute);
-  globalMind.tempCount = decompiledRoute.length;
-  globalMind.decompiled = decompiledRoute;
-  globalMind.tempCountTicker = 0;
-  globalMind.syncronousInsert();
-};
 

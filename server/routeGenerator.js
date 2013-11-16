@@ -1,8 +1,6 @@
-var fs = require('fs');
 var req = require('request');
 var xmldoc = require('xmldoc');
 var MongoClient = require('mongodb').MongoClient,
-    format = require('util').format,
     Server = require('mongodb').Server;
 
 var mongoClient = new MongoClient(new Server('localhost', 27017));
