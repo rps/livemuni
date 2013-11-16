@@ -10,9 +10,9 @@ lm.Map = function(config) {
   var overlay = this.overlay = new google.maps.OverlayView();
 
   // Setup the DirectionsService
-  var directionsService = new google.maps.DirectionsService();
+  var directionsService = this.directionsService = new google.maps.DirectionsService();
 
-  // Called when the position from projection.fromLatLngToPixel() would return a new value for a given LatLng
+  // calleded when the position from projection.fromLatLngToPixel() would return a new value for a given LatLng
   // This readjusts all items hovering above the map to correct locations
   overlay.draw = function(){
     lm.app.adjustItemsOnMap(0);
@@ -166,11 +166,9 @@ lm.Map.prototype.getRouteObjFromServer = function(routeObj){
   d3.xhr('/findStopsOnRoutes')
     .header('Content-Type','application/json')
     .post(send, this.routify.bind(this));
-
-  // d3.xhr('/routify')
-  //   .header('Content-Type','application/json')
-  //   .post(send, this.routify.bind(this));
 };
+
+var glob = {};
 
 // Routify takes an array of map objects and renders them.
 lm.Map.prototype.routify = function(err, res){
@@ -221,43 +219,74 @@ lm.Map.prototype.routify = function(err, res){
       stopRead = true; // Less than ideal
     }
   }
+
+  // console.log('allRoutes',allRoutes['2:02_OB3'].stops[0]);
+//all routes has color and stops[]
+
+  glob.allRoutes = allRoutes;
+  glob.allRoutesKeys = [];
+  glob.counter = -1;
+  glob.currentItem = 0;
+  glob.waypoints = [];
+  glob.notDone = true;
+  glob.makeLines = function(){
+    console.log(this.counter);
+    if(this.notDone === false){
+      this.counter--;
+      this.waypoints = [];
+      this.currentItem = 0;
+    }
+    if(this.counter >= 0){
+      this.notDone = true;
+      if(this.waypoints.length > 0){
+        this.waypoints = [this.waypoints[this.waypoints.length-1]];
+      }
+      var currentRoute = this.allRoutes[this.allRoutesKeys[this.counter]];
+      while(this.waypoints.length < 10 && this.notDone) {
+        if(this.currentItem < currentRoute.stops.length) {
+          this.waypoints.push({location:currentRoute.stops[this.currentItem], stopover: true});
+          this.currentItem++;
+        } else {
+          this.notDone = false;
+        }
+      }
+      if(this.waypoints.length > 0){
+        this.addLine(this.waypoints, currentRoute.color);
+      }
+    }
+  };
+  glob.addLine = function(waypointArr, linecolor){
+    var color = linecolor;
+    var request = {
+      origin: waypointArr[0].location,
+      destination: waypointArr[waypointArr.length-1].location,
+      waypoints: waypointArr.slice(1,5), // max is 8 including endpoints. will need to fragment routes                  
+      travelMode: google.maps.TravelMode.DRIVING
+    };
+    lm.app.map.directionsService.route(request, function(response, status){
+      console.log('status: ',status);
+      if(status == google.maps.DirectionsStatus.OK){
+        var directionsDisplay = new google.maps.DirectionsRenderer({
+          map: lm.app.map.gMap,
+          preserveViewport: true,
+          suppressMarkers: true,
+          polylineOptions: {strokeColor: color, strokeWeight: 5}
+        }); 
+        directionsDisplay.setDirections(response);
+        glob.makeLines();
+      }
+    });
+  };
+  glob.makeLines.bind(glob);
+  glob.addLine.bind(glob);
   
   for(var routeAndDirTag in allRoutes){
-    // console.log('route: ',route,allRoutes[route].stops);
-    // for(var s = 0; s<allRoutes[route].stops.length; s++){
-    //   console.log(allRoutes[route].stops[s].pb);
-    // }
-    createPolyline(allRoutes[routeAndDirTag].stops, allRoutes[routeAndDirTag].color);
+  //   // createPolyline(allRoutes[routeAndDirTag].stops, allRoutes[routeAndDirTag].color);
+    glob.allRoutesKeys.push(routeAndDirTag);
+    glob.counter++;
   }
 
-//   var coord;
-//   var waypoints = [];
-//   var brain = {};
-//   brain.directions = new google.maps.DirectionsService();
-//   brain.routeSegments = [];
-//   brain.counter = 0;
-//   brain.direction = 'Outbound'; // be sure to change in AppJS under direction =
-//   brain.routename = routename;
-//   brain.totalStops = data.stops.length;
-//   console.log('Compiling a new route');
-//   for(var i = 0; i<data.stops.length; i++){
-//     coord = new google.maps.LatLng(data.stops[i].lonlat.lat, data.stops[i].lonlat.lon);
-//     waypoints.push({location: coord, stopover: true});
-//     brain.totalStops--;
-//     if(waypoints.length === 8 || brain.totalStops === 0){
-//       brain.counter++;
-//       (function(waypt, index){
-//         console.log('firing in ',index);
-//         setTimeout(function(){getPath(waypt, brain);}, 500*index);
-//       })(waypoints, i);
-//       waypoints = [waypoints[waypoints.length-1]];
-//     }
-//   }
-// }
-
-
-
-
+  glob.makeLines();
 
 
   // var self = this,

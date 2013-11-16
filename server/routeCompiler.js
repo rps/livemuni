@@ -330,6 +330,7 @@ exports.eligibleRoutes = function(userCoord, destCoord, res){ // DEL
   findRoutesNear(userCoord, routeComparator.setUser);
 };
 
+// For i in path, directionsDisplay.setDirections(path[i])
 exports.saveBrain = function(data, response){
   var routesdb = mongoClient.db('routesdb'); // TODO: use connect function
   var mapobjects = routesdb.collection('mapobjects'); // TODO: use connect function

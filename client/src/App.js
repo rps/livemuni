@@ -36,14 +36,12 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
       self = this,
       url = 'http://webservices.nextbus.com/service/publicXMLFeed?command=vehicleLocations&a=sf-muni&t=';
 
-  console.log('calling nextbus');
   // Always pulls last 15m. To use self.lastTime with D3, will need to implement websockets.
   d3.xhr(url+'0', function(err,res){
     if(err) {
       console.error('Error: ',err);
       return;
     }
-    console.log('nextbus replied');
     var busArray = [],
         dir = '',
         doc = new XmlDocument(res.response); // TODO: move to server
@@ -66,7 +64,6 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
     // Save busArray for quick rerendering on zoom
     self.lastBusArray = busArray;
 
-    console.log('rendering buses');
     // Render buses
     self.adjustItemsOnMap(1);
   });
@@ -183,7 +180,6 @@ lm.App.prototype.getStopPredictions = function(stopObj){
 
 // Controls flow of item updates
 lm.App.prototype.adjustItemsOnMap = function(enableTransitions){
-  console.log('trans enabled: ',enableTransitions);
   
   if(this.userloc){
     this.addThings('user',enableTransitions);
