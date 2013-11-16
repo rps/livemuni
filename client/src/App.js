@@ -36,12 +36,14 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
       self = this,
       url = 'http://webservices.nextbus.com/service/publicXMLFeed?command=vehicleLocations&a=sf-muni&t=';
 
+  console.log('calling nextbus');
   // Always pulls last 15m. To use self.lastTime with D3, will need to implement websockets.
   d3.xhr(url+'0', function(err,res){
     if(err) {
       console.error('Error: ',err);
       return;
     }
+    console.log('nextbus replied');
     var busArray = [],
         dir = '',
         doc = new XmlDocument(res.response); // TODO: move to server
@@ -51,7 +53,6 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
       if(doc.children[i].name === 'lastTime'){
         self.lastTime = doc.children[i].attr.time;
       }
-// FIX: resolve getDirection globally.
       if(
       (!self.lastRouteArray.length || self.lastRouteArray.indexOf(doc.children[i].attr.routeTag+':'+doc.children[i].attr.dirTag) > -1) && // validate against eligible routes, if any listed
       (southWest.lat()-0.01 <= Number(doc.children[i].attr.lat) && Number(doc.children[i].attr.lat) <= northEast.lat()+0.01) && // Remove bus markers placed
@@ -65,13 +66,13 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
     // Save busArray for quick rerendering on zoom
     self.lastBusArray = busArray;
 
+    console.log('rendering buses');
     // Render buses
     self.adjustItemsOnMap(1);
   });
 };
 
 lm.App.prototype.getStopPredictions = function(stopObj){
-  console.log('stopObj',stopObj);
   var query = 'http://webservices.nextbus.com/service/publicXMLFeed?command=predictionsForMultiStops&a=sf-muni',
       map = this.map,
       route,
@@ -81,13 +82,11 @@ lm.App.prototype.getStopPredictions = function(stopObj){
   this.lastStopObjArray = [];
 
   for(var routeAndDirTag in stopObj){
-    this.lastRouteArray.push(routeAndDirTag); // Filters out nonessential buses in fetchAndRenderVehnicles TODO FIX
+    this.lastRouteArray.push(routeAndDirTag);
     route = routeAndDirTag.slice(0,routeAndDirTag.indexOf(':'));
-    // userStops are returned before destStops
     query+='&stops='+route+'|'+stopObj[routeAndDirTag].user.stopTag+'&stops='+route+'|'+stopObj[routeAndDirTag].dest.stopTag;
   }
-  console.log(query);
-
+  console.log('calling stops');
   d3.xhr(query, function(err, res){
     if(err){
       console.log('Prediction error: ',err);
@@ -110,11 +109,8 @@ lm.App.prototype.getStopPredictions = function(stopObj){
       stop = child.attr.stopTag;
       name = child.attr.routeTag;
 
-      //TODO: choose the soonest of the different childrens' times
-      console.log('length: ',child.children.length);
       if(child.children.length > 0){ 
         directionTitle = child.children[0].attr.title;
-        console.log('dirtitle: ',directionTitle);
       // Child.children is a <direction "Inbound to Downtown"> OR a <message text="Stop discontinued. Use pole stop closer to intersection."/>
         if(child.children[0].name !== 'message'){
           var minutes = child.children[0].children[0].attr.minutes; // Child.children.children is the soonest <prediction minutes dirTag>
@@ -161,8 +157,6 @@ lm.App.prototype.getStopPredictions = function(stopObj){
         lm.config.direction = {};
         for(var routeAndDirTag in routesCovered){
           if(routesCovered[routeAndDirTag].length === 2){
-            console.log(routesCovered[routeAndDirTag]);
-            console.log(routesCovered[routeAndDirTag].length);
             var temp = routesCovered[routeAndDirTag][0];
             temp.routeAndDirTag = routeAndDirTag;
             self.lastStopObjArray.push(temp);
@@ -174,11 +168,12 @@ lm.App.prototype.getStopPredictions = function(stopObj){
             delete routesCovered[routeAndDirTag];
           }
         }
-        console.log('lm config',lm.config.direction);
-        console.log('Routes and directions covered: ',routesCovered);
-        console.log('lastStopObjArray',self.lastStopObjArray);
-        console.log('stopobj for refresh',stopObj);
-        self.adjustItemsOnMap(0);
+        // console.log('lm config',lm.config.direction);
+        // console.log('Routes and directions covered: ',routesCovered);
+        // console.log('lastStopObjArray',self.lastStopObjArray);
+        // console.log('stopobj for refresh',stopObj);
+        self.adjustItemsOnMap(1);
+        self.fetchAndRenderVehicles();
         setTimeout(function(){self.getStopPredictions(stopObj);}, 30000);
         map.routesNotRendered && map.getRouteObjFromServer(routesCovered);
       }
@@ -188,7 +183,8 @@ lm.App.prototype.getStopPredictions = function(stopObj){
 
 // Controls flow of item updates
 lm.App.prototype.adjustItemsOnMap = function(enableTransitions){
-
+  console.log('trans enabled: ',enableTransitions);
+  
   if(this.userloc){
     this.addThings('user',enableTransitions);
   }  
@@ -201,7 +197,6 @@ lm.App.prototype.adjustItemsOnMap = function(enableTransitions){
 
 // Adds and updates SVG elements above map
 lm.App.prototype.addThings = function(type, enableTransitions){
-
   var self = this,
       svgBind;
 
@@ -219,31 +214,35 @@ lm.App.prototype.addThings = function(type, enableTransitions){
   // TODO move elsewhere
   var settings = {
     user: {
+      r: 10,
       layer: '.userloclayer',
       data: this.userloc,
       svgClass: 'usersvg',
       itemClass: 'user',
-      fill: 'blue'
+      fill: 'yellow'
     },
     dest: {
+      r: 10,
       layer: '.destloclayer',
       data: this.destloc,
       svgClass: 'destsvg',
       itemClass: 'dest',
-      fill: 'red'
+      fill: 'yellow'
     },
     bus: {
+      r: 8,
       layer: '.toplayer',
       data: this.lastBusArray,
       svgClass: 'busContainer',
       itemClass: 'bus'
     },
     stop: {
+      r: 9,
       layer: '.stoplayer',
       data: this.lastStopObjArray,
       svgClass: 'stopsvg',
       itemClass: 'stop',
-      fill: 'yellow'
+      fill: 'white'
     }    
   };
 
@@ -294,11 +293,25 @@ lm.App.prototype.addThings = function(type, enableTransitions){
   }
 
   var circ = svg.append('circle')
-    .attr('r', 9)
+    .attr('r', settings[type].r)
     .attr('cx',10)
     .attr('cy',10)
     .attr('class',settings[type].itemClass);
   
+  if(type === 'user'){
+    svg.append('text')
+    .attr('dy', '.31em')
+    .attr('y',9)
+    .attr('x',1)
+    .text('You');
+  }
+  if(type === 'dest'){
+    svg.append('text')
+    .attr('dy', '.31em')
+    .attr('y',9)
+    .attr('x',0)
+    .text('Dest');    
+  }
   if(type === 'bus'){
     circ.transition().duration(2000)
     .style('fill-opacity',0.9)

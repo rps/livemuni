@@ -51,6 +51,8 @@ lm.Map = function(config) {
       var oldCenterXY = self.projection.fromLatLngToDivPixel(self.midpoint);
       if(Math.abs(newCenterXY.x-oldCenterXY.x)>window.innerWidth || 
          Math.abs(newCenterXY.y-oldCenterXY.y)>window.innerHeight){
+        console.log('MOVED');
+        // lm.config.timeout = false;
         lm.app.fetchAndRenderVehicles();
       }      
     });    
@@ -96,21 +98,22 @@ lm.Map.prototype.getBounds = function() {
 lm.Map.prototype.waitForDestinationClick = function(userPosition){
   var self = this;
   var clickedOnce = false;
-  // var userLonLat = [userPosition.coords.lon, userPosition.coords.lat]; // not accurate in browser, may be accurate in phone
-  userPosition = {coords:{lat:37.783594,lon: -122.408904}}; // fake TODO fix
-  var userLonLat = [-122.408904,37.783594];                            // fake TODO fix
+  var userLonLat = [userPosition.coords.longitude, userPosition.coords.latitude]; // not accurate in browser, may be accurate in phone
+  // var userLonLat = [-122.408904,37.783594];  // fake TODO fix
   var userMapLatLng = new google.maps.LatLng(userLonLat[1],userLonLat[0]);
   
-  lm.app.set('userloc',[userPosition.coords]);
+  lm.app.set('userloc',[{lat:userLonLat[1],lon:userLonLat[0]}]);
+  
   // Place user on map right now
   lm.app.adjustItemsOnMap(0);
   
-  var location = new google.maps.LatLng(userPosition.coords.lat, userPosition.coords.lon);
+  var location = new google.maps.LatLng(userLonLat[1], userLonLat[0]);
   this.gMap.setCenter(location);
 
   // TODO : toggle w/ button click on menu
   // TODO : resolve touches being counted as clicks
   google.maps.event.addListener(this.gMap, 'click', function(e) {
+    lm.app.lastBusArray = [];
     clickedOnce = true;
 
     // Workaround to avoid double-clicks triggering click events
@@ -200,8 +203,6 @@ lm.Map.prototype.routify = function(err, res){
     });
     line.setMap(self.gMap);
   };
-
-
 
   for(var i = 0; i<stopArr.length; i++){
     if(!allRoutes[stopArr[i].routeAndDirTag]){

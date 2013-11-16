@@ -2,6 +2,17 @@ module.exports = function(grunt) {
 
   require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
+  var changedFiles = Object.create(null);
+  var onChange = grunt.util._.debounce(function() {
+    grunt.config('jshint.files', Object.keys(changedFiles));
+    changedFiles = Object.create(null);
+  }, 200);
+
+  grunt.event.on('watch', function(action, filepath) {
+    changedFiles[filepath] = action;
+    onChange();
+  });  
+
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     concurrent: {
@@ -41,7 +52,7 @@ module.exports = function(grunt) {
       }
     },
     jshint: {
-      files: ['Gruntfile.js', 'client/src/*.js', 'server/**/*.js'],
+      files: ['client/src/*.js', 'server/**/*.js'],
       options: {
         '-W030': true,
         '-W083': true,
@@ -56,7 +67,10 @@ module.exports = function(grunt) {
     watch: {
       all: {
         files: ['<%= jshint.files %>'],
-        tasks: ['newer:jshint']
+        tasks: ['newer:jshint'],
+        options: {
+          nospawn: true
+        }
       },
       client: {
         files: ['client/src/*.js'],

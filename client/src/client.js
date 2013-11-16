@@ -18,10 +18,11 @@ var lm = {
          elementType: 'all',
          stylers: [{ visibility: "off" }]
         }
-      ]
+      ] 
     },
     offset: 10,
-    direction: {}
+    direction: {},
+    timeout: true
   },
   init: function() {
     // Start app
