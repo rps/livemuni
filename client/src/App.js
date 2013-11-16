@@ -10,6 +10,21 @@ lm.App = function(config) {
   this.map = new lm.Map(lm.util.extend(config.map, {
     ready: this.setupMap.bind(this)
   }));
+
+  // Add click listeners
+  var ul = document.getElementsByTagName('ul');
+  ul[0].addEventListener('click', this.navClick, false);
+};
+
+lm.App.prototype.navClick = function(e){
+  var obj = {
+    0: 'first',
+    1: 'second',
+    2: 'third',
+    3: 'fourth' 
+  };
+  var index = e.srcElement.value || e.target.value;
+  console.log(obj[index]);
 };
 
 lm.App.prototype.setupMap = function (argument) {

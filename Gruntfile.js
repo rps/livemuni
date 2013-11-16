@@ -87,12 +87,6 @@ module.exports = function(grunt) {
         options: {
           livereload: true
         }
-      },
-      pages: {
-        files: ['client/*.{css,html}'],
-        options: {
-          livereload: true
-        }
       }   
     },
     shell: {
