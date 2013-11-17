@@ -2,7 +2,7 @@ var lm = {
   config: {
     map: {
       el: '#map-canvas',
-      center: new google.maps.LatLng(37.783, -122.409), //getCenter for NONwrapped LatLon obj
+      center: new google.maps.LatLng(37.783, -122.409),
       zoom: 15,
       maxZoom: 18,
       minZoom: 14, 
@@ -22,7 +22,7 @@ var lm = {
     },
     offset: 10,
     direction: {},
-    timeout: true
+    mobile: false
   },
   init: function() {
     // Start app

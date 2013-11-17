@@ -9,7 +9,7 @@
     font-size: 12px;
   }
   #navbar button {
-    font-size: 1.0rem;
+    font-size: 0.8rem;
   }
 }
 
@@ -46,9 +46,9 @@ html, body, #map-canvas {
 #navbar {
   position: fixed;
   height: 50px;
-  width: 79%;
+  width: 85%;
   top: 15px;
-  left: 10%;
+  left: 7%;
   z-index: 10;
 }
 
