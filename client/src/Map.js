@@ -102,10 +102,10 @@ lm.Map.prototype.centerMap = function(lonLatCoords){
 };
 
 lm.Map.prototype.waitForDestinationClick = function(userPosition){
+  this.userPosition = userPosition || this.userPosition;
   var self = this;
   var clickedOnce = false;
-  var userLonLat = [userPosition.coords.longitude, userPosition.coords.latitude]; // not accurate in browser, may be accurate in phone
-  // var userLonLat = [-122.408904,37.783594];  // fake
+  var userLonLat = [this.userPosition.coords.longitude, this.userPosition.coords.latitude]; // not accurate in browser, may be accurate in phone
   var userMapLatLng = new google.maps.LatLng(userLonLat[1],userLonLat[0]);
   
   lm.app.set('userloc',[{lat:userLonLat[1],lon:userLonLat[0]}]);
@@ -116,9 +116,9 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
   if(lm.app.destloc && lm.app.destloc.length > 0){
     self.sendCoordsToServer(userLonLat, [lm.app.destloc[0].lon, lm.app.destloc[0].lat]);
   }
-  
-  var location = new google.maps.LatLng(userLonLat[1], userLonLat[0]);
-  this.gMap.setCenter(location);
+  if(userPosition){
+    this.centerMap(userLonLat);
+  }
 
   // TODO : toggle w/ button click on menu
   google.maps.event.addListener(this.gMap, 'click', function(e) {

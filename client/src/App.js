@@ -45,15 +45,19 @@ lm.App.prototype.resetMap = function () {
   this.busIntervalReference = -1;
   clearInterval(this.stopIntervalReference);
   this.stopIntervalReference = -1;
-  this.findUser();
+  this.findUser(true);
 };
 
-lm.App.prototype.findUser = function () {
+lm.App.prototype.findUser = function (keepUser) {
   this.lastRouteArray = [];
   this.lastStopObjArray = [];
   this.map.clearLines();
   this.adjustItemsOnMap(0);
-  this.map.getGeo(true);
+  if(keepUser){
+    this.map.waitForDestinationClick();
+  } else {
+    this.map.getGeo(true);
+  }
 };
 
 lm.App.prototype.showAll = function () {
