@@ -39,19 +39,14 @@ lm.App.prototype.manageClick = function(e){
 };
 
 lm.App.prototype.resetMap = function () {
-  this.lastBusArray = [];
-  this.destloc = [];
-  clearInterval(this.busIntervalReference);
+  this.clearBusses();
   this.busIntervalReference = -1;
-  clearInterval(this.stopIntervalReference);
   this.stopIntervalReference = -1;
   this.findUser(true);
 };
 
 lm.App.prototype.findUser = function (keepUser) {
-  this.lastRouteArray = [];
-  this.lastStopObjArray = [];
-  this.map.clearLines();
+  this.resetRoutesandStops();
   this.adjustItemsOnMap(0);
   if(keepUser){
     this.map.waitForDestinationClick();
@@ -60,16 +55,24 @@ lm.App.prototype.findUser = function (keepUser) {
   }
 };
 
-lm.App.prototype.showAll = function () {
-  this.lastBusArray = [];
+lm.App.prototype.resetRoutesandStops = function(){
   this.lastRouteArray = [];
   this.lastStopObjArray = [];
-  this.destloc = [];
-  this.map.routesNotRendered = true;
   this.map.clearLines();
+};
+
+lm.App.prototype.clearBusses = function(){
   clearInterval(this.busIntervalReference);
-  this.busIntervalReference = undefined;
   clearInterval(this.stopIntervalReference);
+  this.lastBusArray = [];
+  this.destloc = [];
+};
+
+lm.App.prototype.showAll = function () {
+  this.clearBusses();
+  this.map.routesNotRendered = true;
+  this.resetRoutesandStops();
+  this.busIntervalReference = undefined;
   this.stopIntervalReference = undefined;
   lm.config.direction = {};
   this.map.centerMap([this.userloc[0].lon, this.userloc[0].lat]);
@@ -169,7 +172,7 @@ lm.App.prototype.getStopPredictions = function(stopObj){
       }
       console.log('sssss',stopObj);
       var doc = new XmlDocument(res.response),
-          counter = doc.children.length, // TODO: if 'titles' are distinguished, will need to count childrens' children
+          counter = doc.children.length,
           routesCovered = {},
           stop,
           name,
@@ -185,16 +188,10 @@ lm.App.prototype.getStopPredictions = function(stopObj){
               routeDirKey: routeDirKey
             };
           }
-          console.log(allRouteNames);
-      // TODO: distinguish between different 'titles' per direction
-      // e.g. Outbound to Ocean Beach vs Outbound to Richmond
       doc.eachChild(function(child){ // Child is a <prediction stopTag>
         counter--;
         stop = child.attr.stopTag;
         name = child.attr.routeTag;
-        if(name === '38'){
-          console.log(child);
-        }
         if(child.children.length > 0){ 
           directionTitle = child.children[0].attr.title;
         // Child.children is a <direction "Inbound to Downtown"> OR a <message text="Stop discontinued. Use pole stop closer to intersection."/>
