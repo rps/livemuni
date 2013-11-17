@@ -47,12 +47,12 @@ lm.Map = function(config) {
     // Rerender map items if total drag amount is a full screen different.
     // DANGER! WILL ROBINSON: Currently this re-queries the Nextbus API
     google.maps.event.addListener(map, 'dragend', function() { 
+      var mobileMultiplier = lm.mobile ? 3 : 1;
       var newCenterXY = self.projection.fromLatLngToDivPixel(self.gMap.getCenter());
       var oldCenterXY = self.projection.fromLatLngToDivPixel(self.midpoint);
-      if(Math.abs(newCenterXY.x-oldCenterXY.x)>window.innerWidth || 
-         Math.abs(newCenterXY.y-oldCenterXY.y)>window.innerHeight){
+      if(Math.abs(newCenterXY.x-oldCenterXY.x)>(window.innerWidth*mobileMultiplier) || 
+         Math.abs(newCenterXY.y-oldCenterXY.y)>(window.innerHeight*mobileMultiplier)){
         console.log('MOVED');
-        // lm.config.timeout = false;
         lm.app.fetchAndRenderVehicles();
       }      
     });    

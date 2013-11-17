@@ -14,9 +14,9 @@
 }
 
 html, body, #map-canvas {
-  height:100%;
+  height: 100%;
   width: 100%;
-  top:0;
+  top: 0;
   bottom: 0;
   right: 0;
   left: 0;
@@ -37,8 +37,6 @@ html, body, #map-canvas {
   background: -ms-linear-gradient(top,  rgba(220,225,232,1) 9%,rgba(242,242,242,1) 100%); /* IE10+ */
   background: linear-gradient(to bottom,  rgba(220,225,232,1) 9%,rgba(242,242,242,1) 100%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#dce1e8', endColorstr='#f2f2f2',GradientType=0 ); /* IE6-9 */
-
-
 }
 
 :focus {
@@ -47,10 +45,10 @@ html, body, #map-canvas {
 
 #navbar {
   position: fixed;
-  top: 15px;
   height: 50px;
-  left: 10%;
   width: 79%;
+  top: 15px;
+  left: 10%;
   z-index: 10;
 }
 
@@ -73,9 +71,9 @@ html, body, #map-canvas {
 }
 
 #navbar button {
-  border-top:1px solid #696969;
-  border-bottom:1px solid #696969;
-  border-right:1px solid #696969;
+  border-top: 1px solid #696969;
+  border-bottom: 1px solid #696969;
+  border-right: 1px solid #696969;
   border-left: 0px;
   margin: 2px 0 0;
   height: 100%;
@@ -97,8 +95,6 @@ html, body, #map-canvas {
   background: linear-gradient(to bottom,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5ebee',GradientType=0 ); /* IE6-9 */
 }
-
-
 
 #navbar .left {
   border-top-left-radius: 10px;
@@ -164,7 +160,7 @@ html, body, #map-canvas {
 }
 
 .hidden {
-  display:none;
+  display: none;
 }
 
 .toplayer circle {

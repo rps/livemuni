@@ -5,6 +5,9 @@ lm.App = function(config) {
   this.lastStopObjArray = [];
   this.userloc;
   this.destloc;
+  this.intervalStarted = false;
+  lm.mobile = screen.width < 800;
+  lm.config.map.zoom = lm.mobile ? 14 : 15;
 
   // Initialize map
   this.map = new lm.Map(lm.util.extend(config.map, {
@@ -13,27 +16,42 @@ lm.App = function(config) {
 
   // Add click listeners
   var ul = document.getElementsByTagName('ul');
-  ul[0].addEventListener('click', this.navClick, false);
+  ul[0].addEventListener('click', this.manageClick, false);
 };
 
-lm.App.prototype.navClick = function(e){
+lm.App.prototype.manageClick = function(e){
+  var self = this;
   var obj = {
-    0: 'first',
-    1: 'second',
-    2: 'third',
-    3: 'fourth' 
+    0: self.resetMap,
+    1: self.findUser,
+    2: self.showAll,
+    3: self.triggerAbout 
   };
   var index = e.srcElement.value || e.target.value;
-  console.log(obj[index]);
+  obj[index]();
 };
 
-lm.App.prototype.setupMap = function (argument) {
-  
-  // Load initial content
-  this.fetchAndRenderVehicles();
+lm.App.prototype.resetMap = function (argument) {
 
-  // Start polling
-  setInterval(this.fetchAndRenderVehicles.bind(this), 10000);
+}
+
+lm.App.prototype.findUser = function (argument) {
+
+}
+
+lm.App.prototype.showAll = function (argument) {
+
+}
+
+lm.App.prototype.triggerAbout = function (argument) {
+
+}
+
+lm.App.prototype.setupMap = function () {
+  // Load initial content
+  if(!lm.mobile){ 
+    this.fetchAndRenderVehicles();
+  }
 };
 
 lm.App.prototype.set = function(variable, value){
@@ -80,6 +98,13 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
     }
     // Save busArray for quick rerendering on zoom
     self.lastBusArray = busArray;
+
+    // Begin polling
+    if(!self.intervalStarted){
+      var interval = lm.mobile ? 15000 : 10000;
+      setInterval(self.fetchAndRenderVehicles.bind(self), interval);
+      self.intervalStarted = true;
+    }
 
     console.log('rendering buses');
     // Render buses
