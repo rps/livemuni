@@ -185,7 +185,6 @@ lm.Map.prototype.getRouteObjFromServer = function(routeObj){
 
 // Routify takes an array of map objects and renders them.
 lm.Map.prototype.routify = function(err, res){
-  console.log('RRRROUTIFY');
   if(err) throw err;
   var stopArr, // all stops with the routeAndDirTag
       coord,
@@ -194,7 +193,6 @@ lm.Map.prototype.routify = function(err, res){
       endPairs = {}, // Obj of route objs containing dest/user lat and lon
       self = this,
       endpointArray = lm.app.lastStopObjArray; // Only routeStops we have predictions for
-      console.log('ep arr len',endpointArray.length);
   for(var j = 0; j<endpointArray.length; j++){
     endPairs[endpointArray[j].routeAndDirTag] = endPairs[endpointArray[j].routeAndDirTag] || {};
     endPairs[endpointArray[j].routeAndDirTag][endpointArray[j].userOrDest] = endpointArray[j];

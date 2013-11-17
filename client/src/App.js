@@ -147,7 +147,6 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
 };
 
 lm.App.prototype.getStopPredictions = function(stopObj){
-  console.log('STOPINTERVALREF',this.stopIntervalReference);
   if(this.stopIntervalReference !== -1){
     var query = 'http://webservices.nextbus.com/service/publicXMLFeed?command=predictionsForMultiStops&a=sf-muni',
         map = this.map,
@@ -163,11 +162,12 @@ lm.App.prototype.getStopPredictions = function(stopObj){
       query+='&stops='+route+'|'+stopObj[routeAndDirTag].user.stopTag+'&stops='+route+'|'+stopObj[routeAndDirTag].dest.stopTag;
     }
     console.log('calling stops');
+    console.log(query);
     d3.xhr(query, function(err, res){
       if(err){
         console.error('Prediction error: ',err);
       }
-
+      console.log('sssss',stopObj);
       var doc = new XmlDocument(res.response),
           counter = doc.children.length, // TODO: if 'titles' are distinguished, will need to count childrens' children
           routesCovered = {},
@@ -175,33 +175,51 @@ lm.App.prototype.getStopPredictions = function(stopObj){
           name,
           directionTitle,
           tempArr = [],
-          userOrDest;
-          console.log(counter+' Predictions returned');
-
+          userOrDest,
+          stopObjKeys = [],
+          allRouteNames = {};
+          
+          for(var routeDirKey in stopObj){
+            allRouteNames[routeDirKey.slice(0,routeDirKey.indexOf(':'))] = {
+              fullDir: stopObj[routeDirKey].dest.fullDirection,
+              routeDirKey: routeDirKey
+            };
+          }
+          console.log(allRouteNames);
       // TODO: distinguish between different 'titles' per direction
       // e.g. Outbound to Ocean Beach vs Outbound to Richmond
       doc.eachChild(function(child){ // Child is a <prediction stopTag>
         counter--;
         stop = child.attr.stopTag;
         name = child.attr.routeTag;
-
+        if(name === '38'){
+          console.log(child);
+        }
         if(child.children.length > 0){ 
           directionTitle = child.children[0].attr.title;
         // Child.children is a <direction "Inbound to Downtown"> OR a <message text="Stop discontinued. Use pole stop closer to intersection."/>
           if(child.children[0].name !== 'message'){
             var minutes = child.children[0].children[0].attr.minutes; // Child.children.children is the soonest <prediction minutes dirTag>
             var dirTag = child.children[0].children[0].attr.dirTag;
+            
             // Protection against dirTags we do not have
+            var keyIdentifier;
             if(stopObj[name+':'+dirTag]){
-              userOrDest = stopObj[name+':'+dirTag].dest.stopTag === stop ? 'dest' : 'user';
-              lat = stopObj[name+':'+dirTag][userOrDest].lonlat[1];
-              lon = stopObj[name+':'+dirTag][userOrDest].lonlat[0];
-              color = stopObj[name+':'+dirTag][userOrDest].color;
-              oppositeColor = stopObj[name+':'+dirTag][userOrDest].oppositeColor;
-              stopLongName = stopObj[name+':'+dirTag][userOrDest].stopName; // TODO: use or delete
+              keyIdentifier = name+':'+dirTag;
+            // Fallback in the event that the dirTags do not match but the directions do
+            } else if(allRouteNames[name].fullDir === directionTitle){
+              keyIdentifier = allRouteNames[name].routeDirKey;
+            }
+            if(keyIdentifier){
+              userOrDest = stopObj[keyIdentifier].dest.stopTag === stop ? 'dest' : 'user';
+              lat = stopObj[keyIdentifier][userOrDest].lonlat[1];
+              lon = stopObj[keyIdentifier][userOrDest].lonlat[0];
+              color = stopObj[keyIdentifier][userOrDest].color;
+              oppositeColor = stopObj[keyIdentifier][userOrDest].oppositeColor;
+              stopLongName = stopObj[keyIdentifier][userOrDest].stopName; // TODO: use or delete
               // self.lastStopObjArray.push({ lat: lat, lon: lon, minutes: minutes, route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
-              routesCovered[name+':'+dirTag] = routesCovered[name+':'+dirTag] || [];
-              routesCovered[name+':'+dirTag].push({ dirTitle: directionTitle, lat: lat, lon: lon, minutes: minutes, route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
+              routesCovered[keyIdentifier] = routesCovered[keyIdentifier] || [];
+              routesCovered[keyIdentifier].push({ dirTitle: directionTitle, lat: lat, lon: lon, minutes: minutes, route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
             }
           }
         } else if(child.name === 'predictions' && child.attr.dirTitleBecauseNoPredictions){
@@ -210,8 +228,6 @@ lm.App.prototype.getStopPredictions = function(stopObj){
           // routesCovered[stopObj[name].direction] = routesCovered[stopObj[name].direction] || [];
           tempArr.push({ dirTitle: directionTitle, minutes: '?', route: name });
         }
-      
-
         if(counter === 0){
           // Try to find matches for stops without predictions, to determine if they should be on map
           for(var i = 0; i<tempArr.length; i++){
@@ -251,7 +267,6 @@ lm.App.prototype.getStopPredictions = function(stopObj){
           self.adjustItemsOnMap(1);
           self.fetchAndRenderVehicles();
           self.stopIntervalReference = setTimeout(function(){self.getStopPredictions(stopObj);}, 30000);
-          console.log('STOPREF2',self.stopIntervalReference);
           map.routesNotRendered && map.getRouteObjFromServer(routesCovered);
         }
       });
