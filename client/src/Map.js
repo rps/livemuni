@@ -76,7 +76,7 @@ lm.Map.prototype.getGeo = function(highAccuracy){
   if(navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       function(position){
-        self.waitForDestinationClick(position);
+        self.waitForDestinationClick([position.coords.longitude, position.coords.latitude]);
       },
       function(err){
         if(err.code === 3){
@@ -96,17 +96,18 @@ lm.Map.prototype.getBounds = function() {
   return this.gMap.getBounds();
 };
 
-lm.Map.prototype.centerMap = function(lonLatCoords){
-  var location = new google.maps.LatLng(lonLatCoords[1], lonLatCoords[0]);
+lm.Map.prototype.centerMap = function(lonLatCoordArr){
+  var location = new google.maps.LatLng(lonLatCoordArr[1], lonLatCoordArr[0]);
   this.gMap.setCenter(location);
 };
 
 lm.Map.prototype.waitForDestinationClick = function(userPosition){
+  console.log('WAITFOR');
   this.userPosition = userPosition || this.userPosition;
-  var self = this;
-  var clickedOnce = false;
-  var userLonLat = [this.userPosition.coords.longitude, this.userPosition.coords.latitude]; // not accurate in browser, may be accurate in phone
-  var userMapLatLng = new google.maps.LatLng(userLonLat[1],userLonLat[0]);
+  var self = this,
+      clickedOnce = false,
+      userLonLat = this.userPosition,
+      userMapLatLng = new google.maps.LatLng(userLonLat[1],userLonLat[0]);
   
   lm.app.set('userloc',[{lat:userLonLat[1],lon:userLonLat[0]}]);
   
@@ -120,7 +121,6 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
     this.centerMap(userLonLat);
   }
 
-  // TODO : toggle w/ button click on menu
   google.maps.event.addListener(this.gMap, 'click', function(e) {
     lm.app.lastBusArray = [];
     clickedOnce = true;
@@ -129,6 +129,7 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
     setTimeout(function(){
       if(clickedOnce){
         google.maps.event.clearListeners(self.gMap, 'click');
+        google.maps.event.clearListeners(self.gMap, 'dblclick');
         
         var destLonLat = [e.latLng.lng(), e.latLng.lat()];
         lm.app.set('destloc', [{lon: destLonLat[0],lat:destLonLat[1]}]);

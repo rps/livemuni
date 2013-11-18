@@ -29,17 +29,17 @@ lm.App = function(config) {
 lm.App.prototype.manageClick = function(e){
   var self = this;
   var obj = {
-    0: self.resetMap,
+    0: self.clearMap,
     1: self.findUser,
-    2: self.showAll,
+    2: self.startOver,
     3: self.triggerAbout
   };
   var index = e.srcElement.value || e.target.value;
   obj[index].call(this);
 };
 
-lm.App.prototype.resetMap = function () {
-  this.clearBusses();
+lm.App.prototype.clearMap = function () {
+  this.resetBusses();
   this.busIntervalReference = -1;
   this.stopIntervalReference = -1;
   this.findUser(true);
@@ -61,17 +61,17 @@ lm.App.prototype.resetRoutesandStops = function(){
   this.map.clearLines();
 };
 
-lm.App.prototype.clearBusses = function(){
+lm.App.prototype.resetBusses = function(){
   clearInterval(this.busIntervalReference);
   clearInterval(this.stopIntervalReference);
   this.lastBusArray = [];
   this.destloc = [];
 };
 
-lm.App.prototype.showAll = function () {
-  this.clearBusses();
+lm.App.prototype.startOver = function () {
+  this.resetBusses();
   this.map.routesNotRendered = true;
-  this.resetRoutesandStops();
+  this.findUser(true);
   this.busIntervalReference = undefined;
   this.stopIntervalReference = undefined;
   lm.config.direction = {};
