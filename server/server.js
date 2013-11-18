@@ -7,7 +7,6 @@ var express = require('express');
 var routes = require('./routes/routes.js');
 var http = require('http');
 var path = require('path');
-var config = require('../config.js');
 var routeCompiler = require('./routeCompiler.js');
 var fs = require('fs');
 

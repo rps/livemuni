@@ -164,9 +164,9 @@ exports.listAllRoutes = function(cb, originalres){
 
 exports.findStopsOnRoutes = function(request, response){
   
-  var db = connect('routesdb','busstops4');
+  var db = connect('routesdb','busstops2');
 
-  db.busstops4.find({routeAndDirTag: 'F:F__IBCTRO'},{_id:0}).toArray(function(err,res){
+  db.busstops2.find({},{_id:0}).toArray(function(err,res){
     if(err) console.log("This is an error: ",err);
     response.end(JSON.stringify(res));
   });
