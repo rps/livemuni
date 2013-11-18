@@ -165,13 +165,18 @@ lm.Map.prototype.getRouteObjFromServer = function(routeObj){
 
   d3.xhr('/findStopsOnRoutes')
     .header('Content-Type','application/json')
-    .post(send, this.routify.bind(this));
+    .post(send, this.routify2.bind(this));
 };
 
 var glob = {};
 
+lm.Map.prototype.renderEverything = function(){
+
+};
+
 // Routify takes an array of map objects and renders them.
-lm.Map.prototype.routify = function(err, res){
+lm.Map.prototype.routify2 = function(err, res){
+
   if(err) throw err;
   var stopArr, // all stops with the routeAndDirTag
       coord,
@@ -186,9 +191,12 @@ lm.Map.prototype.routify = function(err, res){
     endPairs[endpointArray[j].routeAndDirTag][endpointArray[j].userOrDest] = endpointArray[j];
   }  
   
+
+
   try {
     stopArr = JSON.parse(res.responseText);
     this.routesNotRendered = false;
+    console.log(stopArr);
   } catch(error) {
     console.error(error);
   }
@@ -206,17 +214,9 @@ lm.Map.prototype.routify = function(err, res){
     if(!allRoutes[stopArr[i].routeAndDirTag]){
       stopRead = false;
       allRoutes[stopArr[i].routeAndDirTag] = {stops:[],color:stopArr[i].color};
-    }
-    if(!stopRead){
-        coord = new google.maps.LatLng(stopArr[i].lonlat[1],stopArr[i].lonlat[0]);
-        allRoutes[stopArr[i].routeAndDirTag].stops.push(coord);
     } else {
-      // console.log('break ',stopArr[i].lonlat[1], endPairs[stopArr[i].routeAndDirTag].dest.lat, stopArr[i].lonlat[0], endPairs[stopArr[i].routeAndDirTag].dest.lon);
-    }
-    if(stopArr[i].lonlat[0] === endPairs[stopArr[i].routeAndDirTag].dest.lon &&
-       stopArr[i].lonlat[1] === endPairs[stopArr[i].routeAndDirTag].dest.lat
-      ){
-      stopRead = true; // Less than ideal
+      coord = new google.maps.LatLng(stopArr[i].lonlat[1],stopArr[i].lonlat[0]);
+      allRoutes[stopArr[i].routeAndDirTag].stops.push(coord);
     }
   }
 
@@ -229,23 +229,25 @@ lm.Map.prototype.routify = function(err, res){
   glob.currentItem = 0;
   glob.waypoints = [];
   glob.notDone = true;
+  glob.currentLength = 0;
+  glob.cont = true;
+  glob.currentDirArr = [];
   glob.makeLines = function(){
-    console.log(this.counter);
-    if(this.notDone === false){
-      this.counter--;
+    if(this.notDone === false && this.counter >= 0){
       this.waypoints = [];
       this.currentItem = 0;
-    }
-    if(this.counter >= 0){
-      this.notDone = true;
+      this.cont = false;
+      this.saveTheDir();
+    } 
+    if(this.counter >= 0 && this.cont === true){
       if(this.waypoints.length > 0){
         this.waypoints = [this.waypoints[this.waypoints.length-1]];
       }
       var currentRoute = this.allRoutes[this.allRoutesKeys[this.counter]];
+      this.currentLength = currentRoute.stops.length;
       while(this.waypoints.length < 10 && this.notDone) {
         if(this.currentItem < currentRoute.stops.length) {
           this.waypoints.push({location:currentRoute.stops[this.currentItem], stopover: true});
-          this.currentItem++;
         } else {
           this.notDone = false;
         }
@@ -263,22 +265,63 @@ lm.Map.prototype.routify = function(err, res){
       waypoints: waypointArr.slice(1,5), // max is 8 including endpoints. will need to fragment routes                  
       travelMode: google.maps.TravelMode.DRIVING
     };
+    this.sendForRender(request);
+  };
+  glob.sendForRender = function(req){
+    var self = this;
+    var request = req;
     lm.app.map.directionsService.route(request, function(response, status){
-      console.log('status: ',status);
+      console.log('status: ',status,' counter: ',self.counter, 'item ',self.currentItem,' of ',self.currentLength);
       if(status == google.maps.DirectionsStatus.OK){
-        var directionsDisplay = new google.maps.DirectionsRenderer({
-          map: lm.app.map.gMap,
-          preserveViewport: true,
-          suppressMarkers: true,
-          polylineOptions: {strokeColor: color, strokeWeight: 5}
-        }); 
-        directionsDisplay.setDirections(response);
-        glob.makeLines();
+        // Increment item
+        self.currentItem++;
+
+        // Save file
+        self.currentDirArr.push(response);
+
+        // Keep going
+        self.makeLines();
+
+      } else {
+        var time = Math.random()*25000;
+        console.log('Firing in... ',time/1000,' seconds');
+        setTimeout(function(){self.sendForRender(request);},time);
       }
     });
   };
+  glob.saveTheDir = function(){
+    var xhr = new XMLHttpRequest();
+    var self = this;
+    var send = {
+      routename: this.allRoutesKeys[this.counter],
+      dirobjects: []
+    };
+    send.dirObjects = this.currentDirArr;
+
+    xhr.open("POST", "saveCompleteDir");
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState == 4){
+        if(xhr.status == 200){
+          console.log('Successfully saved');
+          self.currentDirArr = [];
+          self.counter--;
+          self.cont = true;
+          self.notDone = true;
+          self.makeLines();
+        } else {
+          console.log('Node Post failed');
+          self.saveTheDir();
+        }
+      }
+    };
+    xhr.send(JSON.stringify(send));
+  };
+
   glob.makeLines.bind(glob);
   glob.addLine.bind(glob);
+  glob.sendForRender.bind(glob);
+  glob.saveTheDir.bind(glob);
   
   for(var routeAndDirTag in allRoutes){
   //   // createPolyline(allRoutes[routeAndDirTag].stops, allRoutes[routeAndDirTag].color);

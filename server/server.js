@@ -43,6 +43,10 @@ app.post('/routify', function(req, res){
   routes.pullBusRoutes(req.body, res);
 });
 
+app.post('/saveCompleteDir', function(req, res){
+  routeCompiler.saveTheDir(req.body, res);
+});
+
 app.post('/coordinates', function(req, res){
   console.log('coordinates post req');
   routes.coordinates(req.body, res);

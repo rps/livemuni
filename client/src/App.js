@@ -13,12 +13,12 @@ lm.App = function(config) {
 };
 
 lm.App.prototype.setupMap = function (argument) {
-  
+  this.map.getRouteObjFromServer({});
   // Load initial content
-  this.fetchAndRenderVehicles();
+  // this.fetchAndRenderVehicles();
 
   // Start polling
-  setInterval(this.fetchAndRenderVehicles.bind(this), 10000);
+  // setInterval(this.fetchAndRenderVehicles.bind(this), 10000);
 };
 
 lm.App.prototype.set = function(variable, value){

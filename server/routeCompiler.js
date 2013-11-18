@@ -15,6 +15,19 @@ mongoClient.open(function(err, mongoClient) {
   // spool();
 });
 
+exports.saveTheDir = function(req, res){
+  var dbInfo = connect('routesdb','mapobjects3');
+  var resp = res;
+  dbInfo.mapobjects3.insert(req, function(err, res){
+    if(err){
+      resp.send(400);
+    }
+    else {
+      resp.send(200);
+    }
+  });
+};
+
 
 
 var connect = function(dbName){
@@ -151,9 +164,9 @@ exports.listAllRoutes = function(cb, originalres){
 
 exports.findStopsOnRoutes = function(request, response){
   
-  var db = connect('routesdb','busstops2');
+  var db = connect('routesdb','busstops4');
 
-  db.busstops2.find({routeAndDirTag: {$in: Object.keys(request)}},{_id:0}).toArray(function(err,res){
+  db.busstops4.find({routeAndDirTag: 'F:F__IBCTRO'},{_id:0}).toArray(function(err,res){
     if(err) console.log("This is an error: ",err);
     response.end(JSON.stringify(res));
   });
