@@ -106,7 +106,7 @@ rc.comparator.generateStopLists = function(){
     this.currentdestlat = null;
 
     console.log('Returning to client: ',Object.keys(temp));
-    this.response.end(JSON.stringify(temp));
+    this.response.json(temp);
   }
 };
 

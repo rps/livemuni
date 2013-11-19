@@ -22,7 +22,7 @@ exports.findStopsOnRoutes = function(request, response){
 
   db.busstops2.find({routeAndDirTag: {$in: Object.keys(request)}},{_id:0}).toArray(function(err,res){
     if(err) console.error("Error: ", err);
-    response.end(JSON.stringify(res));
+    response.json(res);
   });
 };
 
