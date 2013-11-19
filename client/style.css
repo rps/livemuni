@@ -9,14 +9,14 @@
     font-size: 12px;
   }
   #navbar button {
-    font-size: 1.0rem;
+    font-size: 0.8rem;
   }
 }
 
 html, body, #map-canvas {
-  height:100%;
+  height: 100%;
   width: 100%;
-  top:0;
+  top: 0;
   bottom: 0;
   right: 0;
   left: 0;
@@ -24,50 +24,61 @@ html, body, #map-canvas {
   padding: 0;
 }
 
+#navbar button:active {
+  /*-moz-box-shadow: 0 1px #000 inset;
+  -webkit-box-shadow: 0 1px #000 inset;*/
+  position: relative; /* sink effect */
+  top: 1px;
+  background: rgb(220,225,232); /* Old browsers */
+  background: -moz-linear-gradient(top,  rgba(220,225,232,1) 9%, rgba(242,242,242,1) 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(9%,rgba(220,225,232,1)), color-stop(100%,rgba(242,242,242,1))); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  rgba(220,225,232,1) 9%,rgba(242,242,242,1) 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  rgba(220,225,232,1) 9%,rgba(242,242,242,1) 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  rgba(220,225,232,1) 9%,rgba(242,242,242,1) 100%); /* IE10+ */
+  background: linear-gradient(to bottom,  rgba(220,225,232,1) 9%,rgba(242,242,242,1) 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#dce1e8', endColorstr='#f2f2f2',GradientType=0 ); /* IE6-9 */
+}
+
+:focus {
+  outline: none;
+}
+
 #navbar {
   position: fixed;
-  top: 15px;
   height: 50px;
-  left: 10%;
-  width: 79%;
-  background: rgb(255,255,255); /* Old browsers */
-  background: -moz-linear-gradient(top,  rgba(255,255,255,1) 3%, rgba(229,235,238,1) 84%); /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(3%,rgba(255,255,255,1)), color-stop(84%,rgba(229,235,238,1))); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* Opera 11.10+ */
-  background: -ms-linear-gradient(top,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* IE10+ */
-  background: linear-gradient(to bottom,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5ebee',GradientType=0 ); /* IE6-9 */
+  width: 85%;
+  top: 15px;
+  left: 7%;
   z-index: 10;
-  border:1px solid #696969;
-  border-radius:10px;
-  box-shadow: -1px 3px 10px #888888;
 }
 
 #navbar ul {
   top: 1%;
   height: 98%;
-  width: 95%;
-  list-style: none;
-  float: left;
-  margin: 0 3% 0 2%;
+  width: 98%;
+  margin: 0 2% 0 2%;
   padding: 0;
-  border-radius: 20px;
+  box-shadow: 0 4px 2px -2px #888888;
+  border-radius: 10px;
+  display: table;
+  table-layout: fixed;
 }
 
 #navbar li {
-  display: inline;
+  display: table-cell;
   padding: 0;
   margin: 0;
-  border-radius: 20px;
 }
 
 #navbar button {
+  border-top: 1px solid #696969;
+  border-bottom: 1px solid #696969;
+  border-right: 1px solid #696969;
+  border-left: 0px;
+  margin: 2px 0 0;
   height: 100%;
-  width: 24.5%; 
+  width: 100%; 
   padding: 0;
-  border: none;
-  border-right: 1px solid #696969   ;
   text-shadow: 0 -1px 1px rgba(0,0,0,0.1);
   text-size-adjust: none;
   -moz-text-size-adjust: none; 
@@ -83,17 +94,31 @@ html, body, #map-canvas {
   background: -ms-linear-gradient(top,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* IE10+ */
   background: linear-gradient(to bottom,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5ebee',GradientType=0 ); /* IE6-9 */
-
 }
 
-
-
 #navbar .left {
-  border-left: none;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-left: 1px solid #696969;
+}
+
+#navbar .left:active {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-bottom: 1px solid #696969;
+  border-left: 1px solid #696969;
 }
 
 #navbar .right {
-  border-right: none;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  border-right: 1px solid #696969;
+}
+
+#navbar .right:active {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  border-right: 1px solid #696969;
 }
 
 .toplayer, .toplayerRoutes, .destloclayer, .userloclayer, .stoplayer, .toplayer svg, .toplayerRoutes svg, .destloclayer svg, .userloclayer svg, .stoplayer svg {
@@ -135,7 +160,7 @@ html, body, #map-canvas {
 }
 
 .hidden {
-  display:none;
+  display: none;
 }
 
 .toplayer circle {
