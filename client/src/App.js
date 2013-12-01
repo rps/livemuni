@@ -71,11 +71,11 @@ lm.App.prototype.resetBusses = function(){
 lm.App.prototype.startOver = function () {
   this.resetBusses();
   this.map.routesNotRendered = true;
-  this.findUser(true);
   this.busIntervalReference = undefined;
   this.stopIntervalReference = undefined;
   lm.config.direction = {};
   this.map.centerMap([this.userloc[0].lon, this.userloc[0].lat]);
+  this.findUser(true);
   this.fetchAndRenderVehicles();
 };
 

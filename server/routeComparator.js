@@ -140,7 +140,6 @@ rc.findRoutesNear = function(coordinates, cb, routeArray){
     query.routename = {$in: routeArray};
   }
   console.log(query);
-  console.log(this.db.routesdb);
   this.db.routesdb.command({ 
     geoNear: 'busstops3',
     near: {
