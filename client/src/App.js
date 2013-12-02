@@ -486,7 +486,7 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       if(d.minutes === '?'){
         return 'red';
       } else {
-        return 'white'
+        return 'white';
       }
     });
 
