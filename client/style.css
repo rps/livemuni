@@ -121,7 +121,7 @@ html, body, #map-canvas {
   border-right: 1px solid #696969;
 }
 
-.toplayer, .toplayerRoutes, .destloclayer, .userloclayer, .stoplayer, .toplayer svg, .toplayerRoutes svg, .destloclayer svg, .userloclayer svg, .stoplayer svg {
+.toplayer, .destloclayer, .userloclayer, .stoplayer, .toplayer svg, .destloclayer svg, .userloclayer svg, .stoplayer svg {
   position: absolute;
 }
 
@@ -151,14 +151,6 @@ html, body, #map-canvas {
 .stop {
   stroke: black;
   stroke-width: 1.5px;
-}
-
-.toplayerRoutes svg {
-  width: 2000px;
-  height: 2000px;
-  padding-right: 100px;
-  font: 9px sans-serif;
-  font-weight: bolder;
 }
 
 .path {

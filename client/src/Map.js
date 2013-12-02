@@ -31,9 +31,6 @@ lm.Map = function(config) {
     self.busLayer = panes.append('div')
     .attr('class', 'toplayer');
 
-    self.routeLayer = panes.append('div')
-    .attr('class', 'toplayerRoutes');
-
     self.destloclayer = panes.append('div')
     .attr('class', 'destloclayer');
 
