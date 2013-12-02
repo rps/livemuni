@@ -52,6 +52,94 @@ html, body, #map-canvas {
   z-index: 10;
 }
 
+#slide {
+  position: fixed;
+  width: 81%;
+  margin-left: 3%;
+  top: 20px;
+  left: 7%;
+  z-index: 4;
+  background-color: black;
+  -webkit-transition:all 1s ease;
+  -moz-transition:all 1s ease;
+  color: #696969;
+  border-radius: 10px;
+  font: 1em sans-serif;
+  background: rgb(255,255,255); /* Old browsers */
+  background: -moz-linear-gradient(top,  rgba(255,255,255,1) 3%, rgba(229,235,238,1) 84%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(3%,rgba(255,255,255,1)), color-stop(84%,rgba(229,235,238,1))); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* IE10+ */
+  background: linear-gradient(to bottom,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5ebee',GradientType=0 ); /* IE6-9 */
+  border-right: 1px solid #696969;
+  border-bottom: 1px solid #696969;
+  border-left: 1px solid #696969;
+}
+
+#slide div {
+  overflow: auto;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  padding-top: 40px;
+}
+
+#slide div.left {
+  left: 10px;
+  width: 60%;
+}
+
+#slide h4 {
+  text-align: center;
+  font: 1.25em sans-serif;
+  margin: 10px 0 5px 0;
+}
+
+#slide div.right {
+  right: 0;
+  width: 38%;
+  border-left: 1px dashed #696969;
+}
+
+#slide div.left ul {
+  padding-left: 20px;
+  margin-top: 5px;
+}
+
+#slide div.right ul {
+  padding-left: 27%;
+  margin-top: 5px;
+  list-style-type: none;
+}
+
+#slide div.left li {
+  margin-bottom: 5px;
+}
+
+#slide div.right li {
+  margin-bottom: 10px;
+}
+
+#slide a {
+  color: navy;
+  text-decoration: none;
+}
+
+#slide a:hover {
+  color: navy;
+  font-weight: bold;
+}
+
+#slide.mini {
+  height: 10px;
+}
+
+#slide.large {
+  height: 200px;
+} 
+
 #navbar ul {
   top: 1%;
   height: 98%;

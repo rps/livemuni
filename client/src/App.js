@@ -24,6 +24,8 @@ lm.App = function(config) {
   var self = this;
   var ul = document.getElementsByTagName('ul');
   ul[0].addEventListener('click', self.manageClick.bind(self), false);
+  var slider = document.getElementById('slide');
+  slider.addEventListener('click', self.triggerAbout);
 };
 
 lm.App.prototype.manageClick = function(e){
@@ -80,7 +82,9 @@ lm.App.prototype.startOver = function () {
 };
 
 lm.App.prototype.triggerAbout = function (argument) {
-
+  var slide = document.getElementById('slide');
+  slide.classList.toggle('large');
+  slide.classList.toggle('mini');
 };
 
 lm.App.prototype.setupMap = function () {
