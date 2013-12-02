@@ -163,7 +163,7 @@ html, body, #map-canvas {
   display: none;
 }
 
-.toplayer circle {
+.toplayer rect {
   fill: white;
 }
 

@@ -377,32 +377,49 @@ lm.App.prototype.addThings = function(type, enableTransitions){
 
     // TODO: align width with text elements
   if(type === 'stop'){
-    svg.append('rect')
-      .attr('x',10)
-      .attr('y',5)
-      .attr('width',46)
-      .attr('height',10)
-      .style('fill','black');
+    // svg.append('rect')
+    //   .attr('x',10)
+    //   .attr('y',5)
+    //   .attr('width',46)
+    //   .attr('height',10)
+    //   .style('fill','black');
   }
 
-  var circ = svg.append('circle')
-    .attr('r', settings[type].r)
-    .attr('cx',10)
-    .attr('cy',10)
-    .attr('class',settings[type].itemClass);
+  // var circ = svg.append('circle')
+  //   .attr('r', settings[type].r)
+  //   .attr('cx',10)
+  //   .attr('cy',10)
+  //   .attr('class',settings[type].itemClass);
   
+  var circ = svg.append('rect')
+    .attr('width', function(d){
+      if(type === 'bus' && d.routeTag.length > 2) return 19+d.routeTag.length;
+      else if (type === 'stop' && d.route.length > 2) return 19+d.route.length;
+      else if(type === 'user') return 20;
+      else if(type === 'dest') return 24; 
+      else return 19;
+    })
+    .attr('height', 19)
+    .attr('x',2)
+    .attr('y',2)
+    .attr('rx',10)
+    .attr('ry',10)
+    .attr('class',settings[type].itemClass);
+
   if(type === 'user'){
     svg.append('text')
-    .attr('dy', '.31em')
-    .attr('y',9)
-    .attr('x',1)
+    .attr('dy', '.33em')
+    .attr('text-anchor','middle')
+    .attr('y',lm.config.offset +1)
+    .attr('x',lm.config.offset +1)
     .text('You');
   }
   if(type === 'dest'){
     svg.append('text')
-    .attr('dy', '.31em')
-    .attr('y',9)
-    .attr('x',0)
+    .attr('dy', '.33em')
+    .attr('text-anchor','middle')
+    .attr('y',lm.config.offset +1)
+    .attr('x',lm.config.offset +4)
     .text('Dest');    
   }
   if(type === 'bus'){
@@ -411,9 +428,13 @@ lm.App.prototype.addThings = function(type, enableTransitions){
     .style('fill',function(d){return self.map.allRouteColors[d.routeTag].color; });
 
     svg.append('text')
-      .attr('x',lm.config.offset/2)
-      .attr('y',lm.config.offset)
-      .attr('dy', '.31em')
+      .attr('x',function(d){
+        if(d.routeTag.length > 2) return lm.config.offset + d.routeTag.length;
+        else return lm.config.offset + 1;
+      })
+      .attr('y',lm.config.offset +1)
+      .attr('text-anchor','middle')
+      .attr('dy', '.33em')
       .style('fill',function(d){ return self.map.allRouteColors[d.routeTag].oppcolor; })
       .text(function(d){return d.routeTag;});
   } else if(type === 'stop') {
@@ -428,7 +449,7 @@ lm.App.prototype.addThings = function(type, enableTransitions){
     svg.append('text')
       .attr('x',23)
       .attr('y',10)
-      .attr('dy', '.31em')
+      .attr('dy', '.33em')
       .attr('fill','white')
       .attr('class','timetext');
 
@@ -451,15 +472,19 @@ lm.App.prototype.addThings = function(type, enableTransitions){
     timeleft.style('fill',function(d){
       if(d.minutes === '?'){
         return 'red';
+      } else {
+        return 'black'
       }
     });
 
     svg.append('text')
-      .attr('x',3)
-      .attr('y',10)
-      .attr('dy', '.31em')
-      .attr('textLength','15px') // TODO: fix centering
-      .attr('lengthAdjust','spacing') // TODO: fix centering
+      .attr('x',function(d){
+        if(d.route.length > 2) return lm.config.offset + d.route.length;
+        else return lm.config.offset + 1;
+      })
+      .attr('y',lm.config.offset +1)
+      .attr('text-anchor','middle')
+      .attr('dy', '.33em')
       .style('fill', function(d){ return d.oppositeColor; })
       .text(function(d){ return d.route; });
   }
