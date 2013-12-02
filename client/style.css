@@ -128,15 +128,23 @@ html, body, #map-canvas {
 .toplayer svg, .destloclayer svg, .userloclayer svg {
   width: 40px;
   height: 22px;
+  font-weight: bolder;
+}
+
+.toplayer svg {
+  font: 9.5px sans-serif;
+}
+
+.destloclayer svg, .userloclayer svg {
   font: 9px sans-serif;
-  font-weight: bold;
+  font-weight: 800;
 }
 
 .stoplayer svg {
-  width: 60px;
-  height: 40px;
+  width: 64px;
+  height: 24px;
   font: 10px sans-serif;
-  font-weight: bold;
+  font-weight: bolder;
   font-color: black;
 }
 
@@ -150,7 +158,7 @@ html, body, #map-canvas {
   height: 2000px;
   padding-right: 100px;
   font: 9px sans-serif;
-  font-weight: bold;
+  font-weight: bolder;
 }
 
 .path {
@@ -187,6 +195,7 @@ html, body, #map-canvas {
 
 .timetext {
   z-index: 5;
+  font-weight: normal;
   font-size: 1.2em;
 }
 

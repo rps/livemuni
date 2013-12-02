@@ -308,7 +308,9 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       data: this.userloc,
       svgClass: 'usersvg',
       itemClass: 'user',
-      fill: 'yellow'
+      fill: 'yellow',
+      ry: 10,
+      rx: 10
     },
     dest: {
       r: 10,
@@ -316,14 +318,18 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       data: this.destloc,
       svgClass: 'destsvg',
       itemClass: 'dest',
-      fill: 'yellow'
+      fill: 'yellow',
+      ry: 10,
+      rx: 10
     },
     bus: {
       r: 8,
       layer: '.toplayer',
       data: this.lastBusArray,
       svgClass: 'busContainer',
-      itemClass: 'bus'
+      itemClass: 'bus',
+      ry: 10,
+      rx: 10
     },
     stop: {
       r: 9,
@@ -331,7 +337,9 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       data: this.lastStopObjArray,
       svgClass: 'stopsvg',
       itemClass: 'stop',
-      fill: 'white'
+      fill: 'white',
+      ry: 3,
+      rx: 5
     }    
   };
 
@@ -377,12 +385,17 @@ lm.App.prototype.addThings = function(type, enableTransitions){
 
     // TODO: align width with text elements
   if(type === 'stop'){
-    // svg.append('rect')
-    //   .attr('x',10)
-    //   .attr('y',5)
-    //   .attr('width',46)
-    //   .attr('height',10)
-    //   .style('fill','black');
+    svg.append('rect')
+      .attr('x',18)
+      .attr('y',5.5)
+      .attr('width',function(d){
+        if(d.userOrDest === 'dest') return 31;
+        else if(d.minutes === '?') return 33;
+        else if(d.minutes > 9) return 48;
+        else return 40;
+      })
+      .attr('height',11)
+      .style('fill','black');
   }
 
   // var circ = svg.append('circle')
@@ -400,23 +413,23 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       else return 19;
     })
     .attr('height', 19)
-    .attr('x',2)
-    .attr('y',2)
-    .attr('rx',10)
-    .attr('ry',10)
+    .attr('x', 2)
+    .attr('y', 2)
+    .attr('rx',settings[type].rx)
+    .attr('ry',settings[type].ry)
     .attr('class',settings[type].itemClass);
 
   if(type === 'user'){
     svg.append('text')
-    .attr('dy', '.33em')
+    .attr('dy', 4)
     .attr('text-anchor','middle')
-    .attr('y',lm.config.offset +1)
-    .attr('x',lm.config.offset +1)
+    .attr('y',lm.config.offset + 1)
+    .attr('x',lm.config.offset + 1)
     .text('You');
   }
   if(type === 'dest'){
     svg.append('text')
-    .attr('dy', '.33em')
+    .attr('dy', 4)
     .attr('text-anchor','middle')
     .attr('y',lm.config.offset +1)
     .attr('x',lm.config.offset +4)
@@ -424,7 +437,7 @@ lm.App.prototype.addThings = function(type, enableTransitions){
   }
   if(type === 'bus'){
     circ.transition().duration(2000)
-    .style('fill-opacity',0.9)
+    .style('fill-opacity', 0.9)
     .style('fill',function(d){return self.map.allRouteColors[d.routeTag].color; });
 
     svg.append('text')
@@ -434,7 +447,7 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       })
       .attr('y',lm.config.offset +1)
       .attr('text-anchor','middle')
-      .attr('dy', '.33em')
+      .attr('dy', 4)
       .style('fill',function(d){ return self.map.allRouteColors[d.routeTag].oppcolor; })
       .text(function(d){return d.routeTag;});
   } else if(type === 'stop') {
@@ -447,9 +460,9 @@ lm.App.prototype.addThings = function(type, enableTransitions){
 // also try using .each(d){ this.node() } and offsetwidth
   if(type === 'stop'){
     svg.append('text')
-      .attr('x',23)
-      .attr('y',10)
-      .attr('dy', '.33em')
+      .attr('x', 26)
+      .attr('y', 11)
+      .attr('dy', 4)
       .attr('fill','white')
       .attr('class','timetext');
 
@@ -473,7 +486,7 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       if(d.minutes === '?'){
         return 'red';
       } else {
-        return 'black'
+        return 'white'
       }
     });
 
@@ -484,7 +497,7 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       })
       .attr('y',lm.config.offset +1)
       .attr('text-anchor','middle')
-      .attr('dy', '.33em')
+      .attr('dy', 4)
       .style('fill', function(d){ return d.oppositeColor; })
       .text(function(d){ return d.route; });
   }
