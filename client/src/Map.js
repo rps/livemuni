@@ -119,6 +119,7 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
     self.sendCoordsToServer(userLonLat, [lm.app.destloc[0].lon, lm.app.destloc[0].lat]);
   }
   if(!this.handlers){
+    this.handlers = true;
     google.maps.event.addListener(this.gMap, 'click', function(e) {
       lm.app.lastBusArray = [];
       clickedOnce = true;
@@ -128,7 +129,6 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
         if(clickedOnce){
           google.maps.event.clearListeners(self.gMap, 'click');
           google.maps.event.clearListeners(self.gMap, 'dblclick');
-          self.handlers = false;
           
           var destLonLat = [e.latLng.lng(), e.latLng.lat()];
           lm.app.set('destloc', [{lon: destLonLat[0],lat:destLonLat[1]}]);
@@ -142,7 +142,6 @@ lm.Map.prototype.waitForDestinationClick = function(userPosition){
     google.maps.event.addListener(this.gMap, 'dblclick', function(e) {
        clickedOnce = false;
     });
-    this.handlers = true;
   }
 };
 

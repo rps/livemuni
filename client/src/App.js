@@ -68,6 +68,7 @@ lm.App.prototype.resetBusses = function(){
   clearInterval(this.stopIntervalReference);
   this.lastBusArray = [];
   this.destloc = [];
+  this.map.handlers = false;
 };
 
 lm.App.prototype.startOver = function () {
