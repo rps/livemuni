@@ -42,9 +42,9 @@ lm.App.prototype.manageClick = function(e){
 
 lm.App.prototype.clearMap = function () {
   this.resetBusses();
+  this.findUser(true);
   this.busIntervalReference = -1;
   this.stopIntervalReference = -1;
-  this.findUser(true);
 };
 
 lm.App.prototype.findUser = function (keepUser) {
@@ -60,12 +60,12 @@ lm.App.prototype.findUser = function (keepUser) {
 lm.App.prototype.resetRoutesandStops = function(){
   this.lastRouteArray = [];
   this.lastStopObjArray = [];
+  clearInterval(this.stopIntervalReference);
   this.map.clearLines();
 };
 
 lm.App.prototype.resetBusses = function(){
   clearInterval(this.busIntervalReference);
-  clearInterval(this.stopIntervalReference);
   this.lastBusArray = [];
   this.destloc = [];
   this.map.handlers = false;
@@ -74,11 +74,11 @@ lm.App.prototype.resetBusses = function(){
 lm.App.prototype.startOver = function () {
   this.resetBusses();
   this.map.routesNotRendered = true;
-  this.busIntervalReference = undefined;
-  this.stopIntervalReference = undefined;
   lm.config.direction = {};
   this.map.centerMap([this.userloc[0].lon, this.userloc[0].lat]);
   this.findUser(true);
+  this.busIntervalReference = undefined;
+  this.stopIntervalReference = undefined;
   this.fetchAndRenderVehicles();
 };
 

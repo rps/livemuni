@@ -190,15 +190,18 @@ lm.Map.prototype.routify = function(err, res){
   var stopArr, // all stops with the routeAndDirTag
       coord,
       stopRead,
+      startRead,
       allRoutes = {},
       endPairs = {}, // Obj of route objs containing dest/user lat and lon
       self = this,
       endpointArray = lm.app.lastStopObjArray; // Only routeStops we have predictions for
   for(var j = 0; j<endpointArray.length; j++){
+    console.log(endPairs);
     endPairs[endpointArray[j].routeAndDirTag] = endPairs[endpointArray[j].routeAndDirTag] || {};
     endPairs[endpointArray[j].routeAndDirTag][endpointArray[j].userOrDest] = endpointArray[j];
-  }  
-  console.log('ep keys',Object.keys(endPairs));
+    console.log(endPairs);
+  }   
+  console.log('endpair keys',Object.keys(endPairs));
   
   try {
     stopArr = JSON.parse(res.responseText);
@@ -220,13 +223,17 @@ lm.Map.prototype.routify = function(err, res){
   for(var i = 0; i<stopArr.length; i++){
     if(!allRoutes[stopArr[i].routeAndDirTag]){
       stopRead = false;
+      startRead = false;
       allRoutes[stopArr[i].routeAndDirTag] = {stops:[],color:stopArr[i].color};
     }
-    if(!stopRead){
+    if(stopArr[i].lonlat[0] === endPairs[stopArr[i].routeAndDirTag].user.lon &&
+       stopArr[i].lonlat[1] === endPairs[stopArr[i].routeAndDirTag].user.lat
+      ){
+      startRead = true; // Less than ideal
+    }    
+    if(startRead && !stopRead){
         coord = new google.maps.LatLng(stopArr[i].lonlat[1],stopArr[i].lonlat[0]);
         allRoutes[stopArr[i].routeAndDirTag].stops.push(coord);
-    } else {
-      // console.log('break ',stopArr[i].lonlat[1], endPairs[stopArr[i].routeAndDirTag].dest.lat, stopArr[i].lonlat[0], endPairs[stopArr[i].routeAndDirTag].dest.lon);
     }
     if(stopArr[i].lonlat[0] === endPairs[stopArr[i].routeAndDirTag].dest.lon &&
        stopArr[i].lonlat[1] === endPairs[stopArr[i].routeAndDirTag].dest.lat
