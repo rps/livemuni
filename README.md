@@ -19,7 +19,7 @@ Version
 Screenshot
 -----------
 
-![screenshot](https://rps.github.io/livemuni/screenshot.png)
+![screenshot](http://rps.github.io/livemuni/screenshot.png)
 
 Tech Stack
 -----------
