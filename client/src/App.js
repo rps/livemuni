@@ -14,10 +14,11 @@ lm.App = function(config) {
     lm.config.map.zoom = 15;
     lm.config.map.maxZoom = 17;
   } else {
-    var pointer = document.getElementById('pointer');
+    var point = document.getElementById('pointer');
+    var arrowtxt = point.children[0];
     var img = document.createElement('img');
     img.src = 'http://rps.github.io/livemuni/arrow.svg';
-    pointer.insertBefore(img,pointer.children[0]);
+    point.insertBefore(img, arrowtxt);
   }
 
   // Initialize map
