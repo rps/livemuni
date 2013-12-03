@@ -4,29 +4,34 @@ Livemuni
 Livemuni is a realtime visual bus tracking app.
 
   - Click on your destination location
-  - Nearby bus routes and stops are rendered with stops near your destination
+  - Nearby bus routes and stops are shown with stops near your destination
   - Stop arrival times are updated as buses approach
   - Monitor bus locations as they approach the stop
-  - Refresh your location if you're on the move
+  - Refresh your GPS location if you're on the move
 
-> Livemuni allows transit riders to make informed decisions about their choice of Muni bus.
+> Livemuni empowers transit riders to make informed decisions about their choice of Muni bus.
 
 Version
 ----
 
-0.8
+0.9
+
+Screenshot
+-----------
+
+![screenshot](https://rps.github.io/livemuni/screenshot.png)
 
 Tech Stack
 -----------
 
-Livemuni uses a number of (usually) open source projects to work properly:
+Livemuni requires a number of open source projects to work properly:
 
-* [D3] - data binding and visualization
-* [node.js] - evented I/O for the backend
-* [Express] - fast node.js network app framework
-* [MongoDB] - nosql database with geospatial querying
-* [Google Maps] - map, scaling & traffic laws
-* [NextBus] - raw gps data
+* [D3] - Data binding and visualization
+* [node.js] - Evented I/O for the backend
+* [Express] - Fast node.js network app framework
+* [MongoDB] - NoSQL database with geospatial querying
+* [Google Maps] - Map, scaling & traffic laws
+* [NextBus] - Raw GPS data
 
 Installation
 --------------
@@ -37,8 +42,6 @@ cd livemuni
 npm install
 grunt
 ```
-
-
 
 License
 ----
