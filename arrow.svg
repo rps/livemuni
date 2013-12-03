@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" id="svg11300" viewBox="0 0 38 38.001" version="1.0">
+  <defs id="defs3">
+    <radialGradient id="radialGradient4611" gradientUnits="userSpaceOnUse" cy="36.421" cx="24.837" gradientTransform="matrix(1 0 0 .53672 0 16.873)" r="15.645">
+      <stop id="stop8664" offset="0"/>
+      <stop id="stop8666" stop-opacity="0" offset="1"/>
+    </radialGradient>
+    <radialGradient id="radialGradient4613" gradientUnits="userSpaceOnUse" cy="22.455" cx="11.319" gradientTransform="matrix(0 -.84302 1.0202 0 .10078 -23.539)" r="16.956">
+      <stop id="stop2306" stop-color="#729fcf" offset="0"/>
+      <stop id="stop2308" stop-color="#3465a4" offset="1"/>
+    </radialGradient>
+    <radialGradient id="radialGradient4615" gradientUnits="userSpaceOnUse" cy=".40011" cx="24.538" gradientTransform="matrix(0 -2.0467 1.5576 0 2.2614 .80737)" r="17.171">
+      <stop id="stop8652" stop-color="#fff" offset="0"/>
+      <stop id="stop8654" stop-color="#fff" stop-opacity="0" offset="1"/>
+    </radialGradient>
+  </defs>
+  <g id="layer1" transform="translate(-4.4943 61.126)">
+    <g id="g4587">
+      <path id="path3191" opacity=".29947" d="m40.482 36.421a15.645 8.3969 0 1 1 -31.29 0 15.645 8.3969 0 1 1 31.29 0z" fill-rule="evenodd" transform="matrix(1.2145 0 0 .59546 -6.6695 -49.813)" fill="url(#radialGradient4611)"/>
+      <path id="path3193" stroke-linejoin="round" d="m13.986-27.625h17.978v-12.953h8.03l-17.125-20.048-16.846 19.99 7.968 0.066-0.005 12.945z" fill-rule="evenodd" stroke="#183868" stroke-linecap="round" stroke-miterlimit="10" fill="url(#radialGradient4613)"/>
+      <path id="path3195" opacity=".50802" fill-rule="evenodd" fill="url(#radialGradient4615)" d="m7.0799-41.093h7.4101l0.067 6.562c5.655-11.001 15.993-8.844 16.594-15.628 0 0-8.29-9.544-8.29-9.544l-15.781 18.61z"/>
+      <path id="path3197" opacity=".48128" d="m15.097-28.625h15.9v-12.993h6.809l-14.95-17.437-14.707 17.48 6.82-0.022 0.128 12.972z" stroke="#fff" stroke-miterlimit="10" fill="none"/>
+    </g>
+  </g>
+  <metadata>
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <cc:license rdf:resource="http://creativecommons.org/licenses/publicdomain/"/>
+        <dc:publisher>
+          <cc:Agent rdf:about="http://openclipart.org/">
+            <dc:title>Openclipart</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+      </cc:Work>
+      <cc:License rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"/>
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>
