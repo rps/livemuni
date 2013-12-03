@@ -14,9 +14,10 @@ var lm = {
       mapTypeControl: false,
       mapTypeId: google.maps.MapTypeId.ROADMAP,
       styles: [
-        {featureType: 'poi.business',
-         elementType: 'all',
-         stylers: [{ visibility: "off" }]
+        {
+          featureType: 'poi.business',
+          elementType: 'all',
+          stylers: [{ visibility: 'off' }]
         }
       ] 
     },

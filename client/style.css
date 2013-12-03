@@ -2,6 +2,15 @@
   #navbar button {
     font-size: 1.25rem;
   }
+  #slide div.right ul {
+    padding-left: 27%;
+  }
+  #slide div.left ul {
+    padding-left: 20px;
+  }
+  #start {
+    left: 40%;
+  }
 }
 
 @media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
@@ -11,6 +20,16 @@
   #navbar button {
     font-size: 0.8rem;
   }
+  #slide div.right ul {
+    padding-left: 14%;
+  }  
+  #slide div.left ul {
+    padding-left: 10px;
+    padding-right: 3px;
+  }  
+  #start {
+    left: 15%;
+  }  
 }
 
 html, body, #map-canvas {
@@ -22,6 +41,38 @@ html, body, #map-canvas {
   left: 0;
   margin: 0;
   padding: 0;
+}
+
+#start {
+  background: rgb(255,255,255); /* Old browsers */
+  background: -moz-linear-gradient(top,  rgba(255,255,255,1) 3%, rgba(229,235,238,1) 84%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(3%,rgba(255,255,255,1)), color-stop(84%,rgba(229,235,238,1))); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* IE10+ */
+  background: linear-gradient(to bottom,  rgba(255,255,255,1) 3%,rgba(229,235,238,1) 84%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5ebee',GradientType=0 ); /* IE6-9 */
+  position: fixed;
+  width: 15em;
+  bottom: 0px;
+  height: 0px;
+  margin-bottom: -1px;
+  z-index: 10;
+  text-align: center;
+  vertical-align: middle;
+  font: 1.5em sans-serif;
+  border-radius: 10px 10px 0px 0px;
+  border-right: 1px solid #696969;
+  border-top: 1px solid #696969;
+  border-left: 1px solid #696969;  
+  text-shadow: 0 -1px 1px rgba(0,0,0,0.1);
+  font-family: helvetica neue, verdana, sans;
+  color: #696969;
+  -webkit-transition: all 300ms cubic-bezier(0.180, 0, 0.710, 1); /* older webkit */
+  -webkit-transition: all 300ms cubic-bezier(0.180, -0.040, 0.710, 2.650); 
+  -moz-transition: all 300ms cubic-bezier(0.180, -0.040, 0.710, 2.650); 
+  -o-transition: all 300ms cubic-bezier(0.180, -0.040, 0.710, 2.650); 
+  transition: all 300ms cubic-bezier(0.180, -0.040, 0.710, 2.650); /* custom */
 }
 
 #navbar button:active {
@@ -104,12 +155,10 @@ html, body, #map-canvas {
 }
 
 #slide div.left ul {
-  padding-left: 20px;
   margin-top: 5px;
 }
 
 #slide div.right ul {
-  padding-left: 27%;
   margin-top: 5px;
   list-style-type: none;
 }
@@ -168,11 +217,11 @@ html, body, #map-canvas {
   width: 100%; 
   padding: 0;
   text-shadow: 0 -1px 1px rgba(0,0,0,0.1);
+  font-family: helvetica neue, verdana, sans;
   text-size-adjust: none;
   -moz-text-size-adjust: none; 
   -webkit-text-size-adjust: none;
   -ms-text-size-adjust: none;
-  font-family: helvetica neue, verdana, sans;
   color: #696969;
   background: rgb(255,255,255); /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(255,255,255,1) 3%, rgba(229,235,238,1) 84%); /* FF3.6+ */

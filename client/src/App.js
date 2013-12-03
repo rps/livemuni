@@ -20,12 +20,21 @@ lm.App = function(config) {
     ready: this.setupMap.bind(this)
   }));
 
+  // Popup helper bar
+  setTimeout(function(){document.getElementById('start').style.height = '30px';}, 4000);  
+
   // Add click listeners
   var self = this;
   var ul = document.getElementsByTagName('ul');
   ul[0].addEventListener('click', self.manageClick.bind(self), false);
   var slider = document.getElementById('slide');
   slider.addEventListener('click', self.triggerAbout);
+
+  // Hide helper bar
+  var anyClick = document.addEventListener('click', function(){
+    document.getElementById('start').style.height = '0px';
+    document.removeEventListener('click', anyClick, false);
+  });  
 };
 
 lm.App.prototype.manageClick = function(e){
@@ -41,7 +50,7 @@ lm.App.prototype.manageClick = function(e){
 };
 
 lm.App.prototype.clearMap = function () {
-  this.resetBusses();
+  this.resetBuses();
   this.findUser(true);
   this.busIntervalReference = -1;
   this.stopIntervalReference = -1;
@@ -64,7 +73,7 @@ lm.App.prototype.resetRoutesandStops = function(){
   this.map.clearLines();
 };
 
-lm.App.prototype.resetBusses = function(){
+lm.App.prototype.resetBuses = function(){
   clearInterval(this.busIntervalReference);
   this.lastBusArray = [];
   this.destloc = [];
@@ -72,7 +81,7 @@ lm.App.prototype.resetBusses = function(){
 };
 
 lm.App.prototype.startOver = function () {
-  this.resetBusses();
+  this.resetBuses();
   this.map.routesNotRendered = true;
   lm.config.direction = {};
   this.map.centerMap([this.userloc[0].lon, this.userloc[0].lat]);

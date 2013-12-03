@@ -5,7 +5,7 @@ Livemuni is a realtime visual bus tracking app.
 
   - Click on your destination location
   - Nearby bus routes and stops are rendered with stops near your destination
-  - Stop arrival times are updated as busses approach
+  - Stop arrival times are updated as buses approach
   - Monitor bus locations as they approach the stop
   - Refresh your location if you're on the move
 
