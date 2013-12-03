@@ -13,6 +13,10 @@ lm.App = function(config) {
     lm.config.mobile = true;
     lm.config.map.zoom = 15;
     lm.config.map.maxZoom = 17;
+  } else {
+    var img = document.createElement('img');
+    img.src = 'http://rps.github.io/livemuni/arrow.svg';
+    document.getElementById('pointer').appendChild(img);
   }
 
   // Initialize map

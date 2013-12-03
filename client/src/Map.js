@@ -70,15 +70,22 @@ lm.Map = function(config) {
 
 // Get user location
 lm.Map.prototype.getGeo = function(highAccuracy){
-  var pointer = document.getElementById('pointer');
-  pointer.className = '';
-  var bounce = setInterval(function(){pointer.classList.toggle('lower');},1000);
+  var pointer;
+  if(!lm.config.mobile){
+    pointer = document.getElementById('pointer');
+    if(pointer){
+      pointer.className = '';
+      var bounce = setInterval(function(){pointer.classList.toggle('lower');},1000);
+    }
+  }
   var self = this;
   if(navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       function(position){
-        clearInterval(bounce);
-        pointer.parentNode.removeChild(pointer);
+        if(pointer){
+          clearInterval(bounce);
+          pointer.parentNode.removeChild(pointer);
+        }
         self.waitForDestinationClick([position.coords.longitude, position.coords.latitude]);
       },
       function(err){
