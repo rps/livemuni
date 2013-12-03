@@ -32,6 +32,34 @@
   }  
 }
 
+#pointer { 
+  position: fixed;
+  top: 30px;
+  right:10px;
+  text-align: center;
+  font: 1.25em sans-serif;
+  font-weight: bold;
+  color: black;
+  -webkit-transition:all 1s ease;
+  -moz-transition:all 1s ease;
+  z-index: 5;
+}
+
+#pointer img {
+  width: 50px;
+  height: 50px;
+}
+
+#pointer .arrowtext {
+  background: rgba(227,223,210,0.5);
+  border-radius: 10px;
+  padding: 0 2px 0 2px;
+}
+
+#pointer.lower {
+  margin-top: 30px;
+}
+
 html, body, #map-canvas {
   height: 100%;
   width: 100%;

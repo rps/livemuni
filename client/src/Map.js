@@ -70,15 +70,19 @@ lm.Map = function(config) {
 
 // Get user location
 lm.Map.prototype.getGeo = function(highAccuracy){
+  var pointer = document.getElementById('pointer');
+  pointer.className = '';
+  var bounce = setInterval(function(){pointer.classList.toggle('lower');},1000);
   var self = this;
   if(navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       function(position){
+        clearInterval(bounce);
+        pointer.parentNode.removeChild(pointer);
         self.waitForDestinationClick([position.coords.longitude, position.coords.latitude]);
       },
       function(err){
         if(err.code === 3){
-          console.log('High accuracy not available');
           self.getGeo(false);
         } else {
           console.log('Please enable GPS.');
