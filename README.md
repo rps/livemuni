@@ -1,7 +1,7 @@
 LiveMuni
 =========
 
-LiveMuni is a realtime visual bus tracking app.
+LiveMuni is a realtime visual bus tracking app. See it live at [LiveMuni.org].
 
   - Click on your destination location
   - Nearby bus routes and stops are shown with stops near your destination
@@ -47,6 +47,7 @@ License
 ----
 [CC BY-SA-NC]
 
+  [LiveMuni.org]: http://livemuni.org
   [node.js]: http://nodejs.org
   [express]: http://expressjs.com
   [D3]: http://d3js.org/
