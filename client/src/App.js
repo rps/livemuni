@@ -13,6 +13,10 @@ lm.App = function(config) {
     lm.config.mobile = true;
     lm.config.map.zoom = 15;
     lm.config.map.maxZoom = 17;
+    var txt = document.getElementById('slide').children[0].children[1].children[0].innerHTML;
+    txt = txt.replace('Click','Tap');
+    document.getElementById('slide').children[0].children[1].children[0].innerHTML = txt;
+    document.getElementById('start').innerText = document.getElementById('start').innerText.replace('click','tap');
   } else {
     var point = document.getElementById('pointer');
     var arrowtxt = point.children[0];
@@ -21,13 +25,13 @@ lm.App = function(config) {
     point.insertBefore(img, arrowtxt);
   }
 
+  // Unhide
+  setTimeout(function(){document.getElementById('start').style.height = '30px';}, 4000);
+
   // Initialize map
   this.map = new lm.Map(lm.util.extend(config.map, {
     ready: this.setupMap.bind(this)
   }));
-
-  // Popup helper bar
-  setTimeout(function(){document.getElementById('start').style.height = '30px';}, 4000);  
 
   // Add click listeners
   var self = this;
@@ -36,11 +40,10 @@ lm.App = function(config) {
   var slider = document.getElementById('slide');
   slider.addEventListener('click', self.triggerAbout);
 
-  // Hide helper bar
   var anyClick = document.addEventListener('click', function(){
     document.getElementById('start').style.height = '0px';
     document.removeEventListener('click', anyClick, false);
-  });  
+  });
 };
 
 lm.App.prototype.manageClick = function(e){
@@ -126,17 +129,15 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
         self = this,
         url = 'http://webservices.nextbus.com/service/publicXMLFeed?command=vehicleLocations&a=sf-muni&t=';
 
-    console.log('calling nextbus');
     // Always pulls last 15m. To use self.lastTime with D3, will need to implement websockets.
     d3.xhr(url+'0', function(err,res){
       if(err) {
         console.error('Error: ',err);
         return;
       }
-      console.log('nextbus replied');
       var busArray = [],
           dir = '',
-          doc = new XmlDocument(res.response); // TODO: move to server
+          doc = new XmlDocument(res.response);
 
       // 66% reduction in buses when filtering out LatLon
       for(var i = 0; i<doc.children.length; i++){
@@ -147,8 +148,8 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
         (!self.lastRouteArray.length || self.lastRouteArray.indexOf(doc.children[i].attr.routeTag+':'+doc.children[i].attr.dirTag) > -1) && // validate against eligible routes, if any listed
         (southWest.lat()-0.01 <= Number(doc.children[i].attr.lat) && Number(doc.children[i].attr.lat) <= northEast.lat()+0.01) && // Remove bus markers placed
         (southWest.lng()-0.01 <= Number(doc.children[i].attr.lon) && Number(doc.children[i].attr.lon) <= northEast.lng()+0.01) && // outside the screen.
-        (doc.children[i].attr.secsSinceReport && doc.children[i].attr.secsSinceReport < 180) &&                 // Remove 180sec old markers.
-        (doc.children[i].attr.dirTag && (lm.hasDirection(doc.children[i].attr.routeTag+':'+doc.children[i].attr.dirTag) || Object.keys(lm.config.direction).length === 0))          // Remove wrong direction bus.
+        (doc.children[i].attr.secsSinceReport && doc.children[i].attr.secsSinceReport < 180) &&  // Remove 180sec old markers.
+        (doc.children[i].attr.dirTag && (lm.hasDirection(doc.children[i].attr.routeTag+':'+doc.children[i].attr.dirTag) || Object.keys(lm.config.direction).length === 0)) // Remove wrong direction bus.
         ){ 
           busArray.push(doc.children[i].attr);
         } 
@@ -162,7 +163,6 @@ lm.App.prototype.fetchAndRenderVehicles = function() {
         self.busIntervalReference = setInterval(self.fetchAndRenderVehicles.bind(self), interval);
       }
 
-      console.log('rendering buses');
       // Render buses
       self.adjustItemsOnMap(1);
     });
@@ -184,13 +184,10 @@ lm.App.prototype.getStopPredictions = function(stopObj){
       route = routeAndDirTag.slice(0,routeAndDirTag.indexOf(':'));
       query+='&stops='+route+'|'+stopObj[routeAndDirTag].user.stopTag+'&stops='+route+'|'+stopObj[routeAndDirTag].dest.stopTag;
     }
-    console.log('calling stops');
-    console.log(query);
     d3.xhr(query, function(err, res){
       if(err){
         console.error('Prediction error: ',err);
       }
-      console.log('sssss',stopObj);
       var doc = new XmlDocument(res.response),
           counter = doc.children.length,
           routesCovered = {},
@@ -202,19 +199,20 @@ lm.App.prototype.getStopPredictions = function(stopObj){
           stopObjKeys = [],
           allRouteNames = {};
           
-          for(var routeDirKey in stopObj){
-            allRouteNames[routeDirKey.slice(0,routeDirKey.indexOf(':'))] = {
-              fullDir: stopObj[routeDirKey].dest.fullDirection,
-              routeDirKey: routeDirKey
-            };
-          }
+      for(var routeDirKey in stopObj){
+        allRouteNames[routeDirKey.slice(0,routeDirKey.indexOf(':'))] = {
+          fullDir: stopObj[routeDirKey].dest.fullDirection,
+          routeDirKey: routeDirKey
+        };
+      }
+      
       doc.eachChild(function(child){ // Child is a <prediction stopTag>
         counter--;
         stop = child.attr.stopTag;
         name = child.attr.routeTag;
         if(child.children.length > 0){ 
           directionTitle = child.children[0].attr.title;
-        // Child.children is a <direction "Inbound to Downtown"> OR a <message text="Stop discontinued. Use pole stop closer to intersection."/>
+          // Child.children is a <direction "Inbound to Downtown"> OR a <message text="Stop discontinued. Use pole stop closer to intersection."/>
           if(child.children[0].name !== 'message'){
             var minutes = child.children[0].children[0].attr.minutes; // Child.children.children is the soonest <prediction minutes dirTag>
             var dirTag = child.children[0].children[0].attr.dirTag;
@@ -233,16 +231,12 @@ lm.App.prototype.getStopPredictions = function(stopObj){
               lon = stopObj[keyIdentifier][userOrDest].lonlat[0];
               color = stopObj[keyIdentifier][userOrDest].color;
               oppositeColor = stopObj[keyIdentifier][userOrDest].oppositeColor;
-              stopLongName = stopObj[keyIdentifier][userOrDest].stopName; // TODO: use or delete
-              // self.lastStopObjArray.push({ lat: lat, lon: lon, minutes: minutes, route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
               routesCovered[keyIdentifier] = routesCovered[keyIdentifier] || [];
               routesCovered[keyIdentifier].push({ dirTitle: directionTitle, lat: lat, lon: lon, minutes: minutes, route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
             }
           }
         } else if(child.name === 'predictions' && child.attr.dirTitleBecauseNoPredictions){
-          // self.lastStopObjArray.push({ lat: lat, lon: lon, minutes: '?', route: name, userOrDest: userOrDest, color: color, oppositeColor: oppositeColor });
           directionTitle = child.attr.dirTitleBecauseNoPredictions;
-          // routesCovered[stopObj[name].direction] = routesCovered[stopObj[name].direction] || [];
           tempArr.push({ dirTitle: directionTitle, minutes: '?', route: name });
         }
         if(counter === 0){
@@ -257,7 +251,6 @@ lm.App.prototype.getStopPredictions = function(stopObj){
                 pushObj.lon = stopObj[key][userOrDest].lonlat[0];
                 pushObj.color = stopObj[key][userOrDest].color;
                 pushObj.oppositeColor = stopObj[key][userOrDest].oppositeColor;
-                pushObj.stopLongName = stopObj[key][userOrDest].stopName; // TODO: use or delete
                 routesCovered[key].push(pushObj);
               }
             }
@@ -277,10 +270,6 @@ lm.App.prototype.getStopPredictions = function(stopObj){
               delete routesCovered[routeAndDirTag];
             }
           }
-          // console.log('lm config',lm.config.direction);
-          // console.log('Routes and directions covered: ',routesCovered);
-          // console.log('lastStopObjArray',self.lastStopObjArray);
-          // console.log('stopobj for refresh',stopObj);
           self.adjustItemsOnMap(1);
           self.fetchAndRenderVehicles();
           self.stopIntervalReference = setTimeout(function(){self.getStopPredictions(stopObj);}, 30000);
@@ -320,7 +309,6 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       .style('top', (d.y - lm.config.offset) +  'px');
     };
 
-  // TODO move elsewhere
   var settings = {
     user: {
       r: 10,
@@ -368,7 +356,6 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       .data(settings[type].data, function(d){ return d.id; })
       .each(latLngToPx);
 
-      // TODO: Set timers on all buses so they will remove themselves.
     var exiting = svgBind.exit();
 
     exiting.selectAll('circle')
@@ -403,7 +390,6 @@ lm.App.prototype.addThings = function(type, enableTransitions){
     .each(latLngToPx)
     .attr('class',settings[type].svgClass);
 
-    // TODO: align width with text elements
   if(type === 'stop'){
     svg.append('rect')
       .attr('x',18)
@@ -417,14 +403,8 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       .attr('height',11)
       .style('fill','black');
   }
-
-  // var circ = svg.append('circle')
-  //   .attr('r', settings[type].r)
-  //   .attr('cx',10)
-  //   .attr('cy',10)
-  //   .attr('class',settings[type].itemClass);
   
-  var circ = svg.append('rect')
+  var rect = svg.append('rect')
     .attr('width', function(d){
       if(type === 'bus' && d.routeTag.length > 2) return 19+d.routeTag.length;
       else if (type === 'stop' && d.route.length > 2) return 19+d.route.length;
@@ -456,7 +436,7 @@ lm.App.prototype.addThings = function(type, enableTransitions){
     .text('Dest');    
   }
   if(type === 'bus'){
-    circ.transition().duration(2000)
+    rect.transition().duration(2000)
     .style('fill-opacity', 0.9)
     .style('fill',function(d){return self.map.allRouteColors[d.routeTag].color; });
 
@@ -471,13 +451,11 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       .style('fill',function(d){ return self.map.allRouteColors[d.routeTag].oppcolor; })
       .text(function(d){return d.routeTag;});
   } else if(type === 'stop') {
-    circ.style('fill',function(d){ return d.color; });
+    rect.style('fill',function(d){ return d.color; });
   } else {
-    circ.style('fill',settings[type].fill);
+    rect.style('fill',settings[type].fill);
   }
 
-// rect.append
-// also try using .each(d){ this.node() } and offsetwidth
   if(type === 'stop'){
     svg.append('text')
       .attr('x', 26)
@@ -486,7 +464,6 @@ lm.App.prototype.addThings = function(type, enableTransitions){
       .attr('fill','white')
       .attr('class','timetext');
 
-    // TODO: have dest stops display time until nearest USER bus reaches them
     var timeleft = d3.selectAll('.timetext')
       .data(settings[type].data, function(d){ return d.route+d.userOrDest; });
       

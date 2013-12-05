@@ -51,7 +51,6 @@ lm.Map = function(config) {
       var oldCenterXY = self.projection.fromLatLngToDivPixel(self.midpoint);
       if(Math.abs(newCenterXY.x-oldCenterXY.x)>(window.innerWidth*mobileMultiplier) || 
          Math.abs(newCenterXY.y-oldCenterXY.y)>(window.innerHeight*mobileMultiplier)){
-        console.log('MOVED');
         lm.app.fetchAndRenderVehicles();
       }      
     });    
@@ -111,7 +110,6 @@ lm.Map.prototype.centerMap = function(lonLatCoordArr){
 };
 
 lm.Map.prototype.waitForDestinationClick = function(userPosition){
-  console.log('WAITFOR');
   this.userPosition = userPosition || this.userPosition;
   var self = this,
       clickedOnce = false,
@@ -161,13 +159,11 @@ lm.Map.prototype.sendCoordsToServer = function(userLonLat, destLonLat){
   var xhr = new XMLHttpRequest();
 
   xhr.open("POST", "coordinates");
-  xhr.setRequestHeader('Content-Type', 'application/json'); // TODO use d3 xhr
+  xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.onreadystatechange = function () {
     if (xhr.readyState == 4 && xhr.status == 200) {
-      console.log('Reply received from server');
       try {
         var parsedRes = JSON.parse(xhr.responseText);
-        console.log('Routes nearby are: ',parsedRes);
         if(Object.keys(parsedRes).length > 0){
           if(lm.app.busIntervalReference === -1){
             lm.app.set('busIntervalReference',0);
@@ -207,12 +203,9 @@ lm.Map.prototype.routify = function(err, res){
       self = this,
       endpointArray = lm.app.lastStopObjArray; // Only routeStops we have predictions for
   for(var j = 0; j<endpointArray.length; j++){
-    console.log(endPairs);
     endPairs[endpointArray[j].routeAndDirTag] = endPairs[endpointArray[j].routeAndDirTag] || {};
     endPairs[endpointArray[j].routeAndDirTag][endpointArray[j].userOrDest] = endpointArray[j];
-    console.log(endPairs);
   }   
-  console.log('endpair keys',Object.keys(endPairs));
   
   try {
     stopArr = JSON.parse(res.responseText);
@@ -254,10 +247,6 @@ lm.Map.prototype.routify = function(err, res){
   }
   
   for(var routeAndDirTag in allRoutes){
-    // console.log('route: ',route,allRoutes[route].stops);
-    // for(var s = 0; s<allRoutes[route].stops.length; s++){
-    //   console.log(allRoutes[route].stops[s].pb);
-    // }
     createPolyline(allRoutes[routeAndDirTag].stops, allRoutes[routeAndDirTag].color);
   }
 };

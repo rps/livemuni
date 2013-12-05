@@ -3,7 +3,6 @@ var common = require('./common.js'),
 
 mongoClient.open(function(err, mongoClient) {
   if (err) console.error("Error: ", err);
-  // rg.getRoutesFromMuni();
 });
 
 var rg = {

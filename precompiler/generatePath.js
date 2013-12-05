@@ -1,5 +1,3 @@
-// scraper
-
 var mapOptions = {
   center: new google.maps.LatLng(37.783, -122.409), //getCenter for NONwrapped LatLon obj
   zoom: 15,
@@ -19,16 +17,13 @@ var globalMind = {
   }
 };
 
-console.log('generatePath.js running');
 function reqListener () {
-  console.log('Data received back from server! ');
   var routeDataRaw = JSON.parse(this.responseText);
   for(var i = 0; i<routeDataRaw.length; i++){
     globalMind.routeObj[routeDataRaw[i].routename] = globalMind.routeObj[routeDataRaw[i].routename] || {stops:[]};
     globalMind.routeObj[routeDataRaw[i].routename].stops.push(routeDataRaw[i].stops);
   }
   globalMind.allRouteNames = Object.keys(globalMind.routeObj);
-  console.log('Global Mind has this many routes: ', globalMind.allRouteNames.length);
   globalMind.trigger();
 }
 
@@ -38,13 +33,11 @@ oReq.open("get", "triggerPathGen", true);
 oReq.send();
 
 function readyPost(data){
-  console.log("READYPOST");
   var xhr = new XMLHttpRequest();
   xhr.open("POST", "saveNewPath");
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.onreadystatechange = function () {
     if (xhr.readyState == 4 && xhr.status == 200) {
-        console.log('SUCCESS BACK!');
         globalMind.trigger();
     }
   };
@@ -62,7 +55,6 @@ function getPathObjects(data, routename){
   brain.direction = 'Outbound'; // be sure to change in AppJS under direction =
   brain.routename = routename;
   brain.totalStops = data.stops.length;
-  console.log('Compiling a new route');
   for(var i = 0; i<data.stops.length; i++){
     coord = new google.maps.LatLng(data.stops[i].lonlat.lat, data.stops[i].lonlat.lon);
     waypoints.push({location: coord, stopover: true});
@@ -70,7 +62,6 @@ function getPathObjects(data, routename){
     if(waypoints.length === 8 || brain.totalStops === 0){
       brain.counter++;
       (function(waypt, index){
-        console.log('firing in ',index);
         setTimeout(function(){getPath(waypt, brain);}, 500*index);
       })(waypoints, i);
       waypoints = [waypoints[waypoints.length-1]];
@@ -86,18 +77,15 @@ function getPath(waypoints, brain){
     waypoints: waypoints.slice(1,7), // max is 8 including endpoints. will need to fragment routes
     travelMode: google.maps.TravelMode.DRIVING
   };
-  console.log('sending route request');
   brain.directions.route(request, function(response, status){
     if (status == google.maps.DirectionsStatus.OK) {
-      console.log('response received');
       brain.routeSegments.push(response);
       brain.counter--;
       if(brain.counter === 0){
-        console.log('Saving the route');
         readyPost(JSON.stringify(brain));
       }
     } else {
-      console.log('Err: ',status);
+      console.error('Err: ',status);
       setTimeout(function(){getPath(waypoints, brain);},60000);
     }
   });
