@@ -1,7 +1,7 @@
-Livemuni
+LiveMuni
 =========
 
-Livemuni is a realtime visual bus tracking app.
+LiveMuni is a realtime visual bus tracking app.
 
   - Click on your destination location
   - Nearby bus routes and stops are shown with stops near your destination
@@ -9,7 +9,7 @@ Livemuni is a realtime visual bus tracking app.
   - Monitor bus locations as they approach the stop
   - Refresh your GPS location if you're on the move
 
-> Livemuni empowers transit riders to make informed decisions about their choice of Muni bus.
+> LiveMuni empowers transit riders to make informed decisions about their choice of Muni bus.
 
 Version
 ----
@@ -24,7 +24,7 @@ Screenshot
 Tech Stack
 -----------
 
-Livemuni requires a number of open source projects to work properly:
+LiveMuni requires a number of open source projects to work properly:
 
 * [D3] - Data binding and visualization
 * [node.js] - Evented I/O for the backend
