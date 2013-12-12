@@ -10,14 +10,17 @@ exports.index = function(req, res){
 };
 
 exports.files = function(req, res){
+  res.setHeader('Content-Type','application/javascript');
   common.fs.createReadStream(common.path.join(__dirname, '../../lib/', req.url.slice(req.url.indexOf('lib/')+4))).pipe(res);
 };
 
 exports.main = function(req, res){
+  res.setHeader('Content-Type','application/javascript');
   common.fs.createReadStream(common.path.join(__dirname, '../../client/dist/livemuni.js')).pipe(res);
 };
 
 exports.style = function(req, res){
+  res.setHeader('Content-Type','text/css');
   common.fs.createReadStream(common.path.join(__dirname, '../../client/style.css')).pipe(res);
 };
 
