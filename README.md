@@ -24,7 +24,7 @@ Screenshot
 Demo
 ----
 
-See it live at [LiveMuni.org]
+See it live at [LiveMuni.com]
 
 Tech Stack
 -----------
@@ -52,7 +52,7 @@ License
 ----
 [CC BY-SA-NC]
 
-  [LiveMuni.org]: http://livemuni.org
+  [LiveMuni.com]: http://livemuni.com
   [node.js]: http://nodejs.org
   [express]: http://expressjs.com
   [D3]: http://d3js.org/
